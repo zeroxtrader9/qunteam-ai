@@ -3,36 +3,41 @@ from flask_cors import CORS
 import requests
 import pandas as pd
 import numpy as np
+import time
 
 app = Flask(__name__)
 CORS(app)
 
-# Forex & Crypto mix for 24/7 weekend testing
-FOREX_MARKETS = {
-    "EURUSD": {"tv_symbol": "FX:EURUSD", "crypto_fallback": "BTCUSDT"},
-    "GBPUSD": {"tv_symbol": "FX:GBPUSD", "crypto_fallback": "ETHUSDT"},
-    "USDJPY": {"tv_symbol": "FX:USDJPY", "crypto_fallback": "SOLUSDT"},
-    "AUDUSD": {"tv_symbol": "FX:AUDUSD", "crypto_fallback": "BNBUSDT"},
-    "USDCAD": {"tv_symbol": "FX:USDCAD", "crypto_fallback": "XRPUSDT"},
-    "USDCHF": {"tv_symbol": "FX:USDCHF", "crypto_fallback": "ADAUSDT"},
-    "NZDUSD": {"tv_symbol": "FX:NZDUSD", "crypto_fallback": "DOTUSDT"},
-    "EURGBP": {"tv_symbol": "FX:EURGBP", "crypto_fallback": "DOGEUSDT"},
-    "EURJPY": {"tv_symbol": "FX:EURJPY", "crypto_fallback": "AVAXUSDT"}
+# Forex aur Crypto markets ka dynamic list
+MARKETS = {
+    "EURUSD": {"tv_symbol": "FX:EURUSD", "type": "forex"},
+    "GBPUSD": {"tv_symbol": "FX:GBPUSD", "type": "forex"},
+    "USDJPY": {"tv_symbol": "FX:USDJPY", "type": "forex"},
+    "AUDUSD": {"tv_symbol": "FX:AUDUSD", "type": "forex"},
+    "BTCUSDT": {"tv_symbol": "BINANCE:BTCUSDT", "type": "crypto"},
+    "ETHUSDT": {"tv_symbol": "BINANCE:ETHUSDT", "type": "crypto"}
 }
 
-def fetch_live_data(market_name):
-    # Weekend par live signals dikhane ke liye crypto data use karenge fallback me
-    crypto_pair = FOREX_MARKETS[market_name]["crypto_fallback"]
-    url = f"https://api.binance.com/api/v3/klines?symbol={crypto_pair}&interval=1m&limit=50"
-    try:
-        response = requests.get(url).json()
-        if isinstance(response, list):
+def fetch_market_data(symbol, mtype):
+    if mtype == "crypto":
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval=1m&limit=50"
+        try:
+            response = requests.get(url).json()
             closes = [float(candle[4]) for candle in response]
             return pd.Series(closes)
-        return pd.Series([])
-    except Exception as e:
-        print(f"Data fetch error: {e}")
-        return pd.Series([])
+        except:
+            return pd.Series([])
+    else:
+        # Forex pairs ka live standard api source
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}=X?interval=1m&range=1d"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        try:
+            res = requests.get(url, headers=headers).json()
+            closes = res['chart']['result'][0]['indicators']['quote'][0]['close']
+            closes = [c for c in closes if c is not None][-50:]
+            return pd.Series(closes)
+        except:
+            return pd.Series([])
 
 def calculate_rsi(prices, period=14):
     if len(prices) < period:
@@ -50,7 +55,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - 24/7 Live Signals</title>
+    <title>QUNTEAM AI - Pro Dashboard</title>
     <style>
         body {
             background-color: #0d1117;
@@ -69,7 +74,7 @@ HTML_TEMPLATE = """
             display: flex;
             flex-direction: row;
             gap: 20px;
-            max-width: 1000px;
+            max-width: 1050px;
             width: 100%;
         }
         .card {
@@ -89,7 +94,7 @@ HTML_TEMPLATE = """
             padding: 15px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             flex: 2;
-            height: 450px;
+            height: 480px;
         }
         h1 { font-size: 24px; margin-bottom: 5px; color: #58a6ff; }
         .select-box {
@@ -124,7 +129,16 @@ HTML_TEMPLATE = """
         .stat-row:last-child { border-bottom: none; }
         .label { color: #8b949e; }
         .value { font-weight: 600; color: #f0f6fc; }
-        .refresh-text { font-size: 11px; color: #8b949e; margin-top: 20px; }
+        .timer-box {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
         
         @media (max-width: 768px) {
             .container { flex-direction: column; align-items: center; }
@@ -134,20 +148,28 @@ HTML_TEMPLATE = """
     </style>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        let autoRefresh;
         let tvWidget;
-
         const marketTvMap = {
             "EURUSD": "FX:EURUSD",
             "GBPUSD": "FX:GBPUSD",
             "USDJPY": "FX:USDJPY",
             "AUDUSD": "FX:AUDUSD",
-            "USDCAD": "FX:USDCAD",
-            "USDCHF": "FX:USDCHF",
-            "NZDUSD": "FX:NZDUSD",
-            "EURGBP": "FX:EURGBP",
-            "EURJPY": "FX:EURJPY"
+            "BTCUSDT": "BINANCE:BTCUSDT",
+            "ETHUSDT": "BINANCE:ETHUSDT"
         };
+
+        function startCandleTimer() {
+            setInterval(() => {
+                const now = new Date();
+                const secondsLeft = 60 - now.getSeconds();
+                document.getElementById('timer').innerText = "Candle Closes In: " + secondsLeft + "s";
+                
+                // Har minute ki starting par automatically signal fetch karega
+                if (secondsLeft === 60 || secondsLeft === 30) {
+                    fetchSignal();
+                }
+            }, 1000);
+        }
 
         function loadTradingViewChart(symbol) {
             tvWidget = new TradingView.widget({
@@ -168,19 +190,18 @@ HTML_TEMPLATE = """
         
         async function fetchSignal() {
             const market = document.getElementById('marketSelect').value;
-            const signalBox = document.getElementById('signal');
-            
             try {
                 const res = await fetch('/api/signals/' + market);
                 const data = await res.json();
                 
+                const signalBox = document.getElementById('signal');
                 signalBox.innerText = data.signal;
                 signalBox.className = 'signal-box ' + data.signal;
                 
                 document.getElementById('rsi').innerText = data.rsi;
                 document.getElementById('confidence').innerText = data.confidence + ' / 10';
             } catch (e) {
-                console.error("Error updating dashboard:", e);
+                console.error(e);
             }
         }
 
@@ -195,8 +216,8 @@ HTML_TEMPLATE = """
 
         window.onload = () => {
             fetchSignal();
+            startCandleTimer();
             loadTradingViewChart(marketTvMap["EURUSD"]);
-            autoRefresh = setInterval(fetchSignal, 5000);
         };
     </script>
 </head>
@@ -204,19 +225,22 @@ HTML_TEMPLATE = """
     <div class="container">
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <p style="color: #8b949e; font-size: 13px; margin-top:0; margin-bottom:15px;">Pocket Option OTC / Weekend Mode</p>
+            <p style="color: #8b949e; font-size: 13px; margin-top:0; margin-bottom:15px;">Live 1M Pro Analyzer</p>
             
             <select id="marketSelect" class="select-box" onchange="onMarketChange()">
-                <option value="EURUSD">EUR / USD (OTC Mode)</option>
-                <option value="GBPUSD">GBP / USD (OTC Mode)</option>
-                <option value="USDJPY">USD / JPY (OTC Mode)</option>
-                <option value="AUDUSD">AUD / USD (OTC Mode)</option>
-                <option value="USDCAD">USD / CAD (OTC Mode)</option>
-                <option value="USDCHF">USD / CHF (OTC Mode)</option>
-                <option value="NZDUSD">NZD / USD (OTC Mode)</option>
-                <option value="EURGBP">EUR / GBP (OTC Mode)</option>
-                <option value="EURJPY">EUR / JPY (OTC Mode)</option>
+                <optgroup label="Forex Markets">
+                    <option value="EURUSD">EUR / USD</option>
+                    <option value="GBPUSD">GBP / USD</option>
+                    <option value="USDJPY">USD / JPY</option>
+                    <option value="AUDUSD">AUD / USD</option>
+                </optgroup>
+                <optgroup label="Crypto Markets">
+                    <option value="BTCUSDT">BTC / USDT (Live Now)</option>
+                    <option value="ETHUSDT">ETH / USDT (Live Now)</option>
+                </optgroup>
             </select>
+
+            <div id="timer" class="timer-box">Candle Closes In: --s</div>
 
             <div id="signal" class="signal-box WAITING">LOADING...</div>
             
@@ -228,7 +252,6 @@ HTML_TEMPLATE = """
                 <span class="label">Signal Confidence</span>
                 <span id="confidence" class="value">--</span>
             </div>
-            <div class="refresh-text">Live signals active 24/7...</div>
         </div>
 
         <div class="chart-card">
@@ -245,10 +268,11 @@ def home():
 
 @app.route('/api/signals/<market>', methods=['GET'])
 def get_signal(market):
-    if market not in FOREX_MARKETS:
+    if market not in MARKETS:
         return jsonify({"signal": "WAITING", "confidence": 5, "rsi": 50})
         
-    prices = fetch_live_data(market)
+    info = MARKETS[market]
+    prices = fetch_market_data(market, info["type"])
     if prices.empty:
         return jsonify({"signal": "WAITING", "confidence": 5, "rsi": 50})
 
@@ -257,13 +281,12 @@ def get_signal(market):
     ma_long = prices.rolling(window=21).mean().iloc[-1]
     current_price = prices.iloc[-1]
 
-    # Quick Scalping Logic for OTC/Weekend
-    if rsi < 35:
+    if rsi < 35 and current_price > ma_short:
         signal = "CALL"
-        confidence = 7
-    elif rsi > 65:
+        confidence = 8
+    elif rsi > 65 and current_price < ma_short:
         signal = "PUT"
-        confidence = 7
+        confidence = 8
     else:
         if ma_short > ma_long:
             signal = "CALL"
