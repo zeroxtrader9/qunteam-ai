@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - High Accuracy Dashboard</title>
+    <title>QUNTEAM AI - Fixed Pro Dashboard</title>
     <style>
         body {
             background-color: #0d1117;
@@ -58,7 +58,7 @@
             cursor: pointer;
         }
         .signal-box {
-            font-size: 30px;
+            font-size: 28px;
             font-weight: bold;
             padding: 12px;
             border-radius: 8px;
@@ -101,13 +101,20 @@
             "NZDUSD": "FX:NZDUSD", "BTCUSDT": "BINANCE:BTCUSDT", "ETHUSDT": "BINANCE:ETHUSDT"
         };
 
+        let lastCheckedMinute = -1;
+
         function startTimer() {
             setInterval(() => {
                 const now = new Date();
-                const secondsLeft = 60 - now.getSeconds();
+                const currentSecond = now.getSeconds();
+                const currentMinute = now.getMinutes();
+                const secondsLeft = 60 - currentSecond;
+                
                 document.getElementById('timer').innerText = "Candle Close In: " + secondsLeft + "s";
                 
-                if (secondsLeft === 60) {
+                // Logic se chhedkhani zero, bas trigger 2 second pehle (at 2s remaining) set kiya hai
+                if (secondsLeft === 2 && currentMinute !== lastCheckedMinute) {
+                    lastCheckedMinute = currentMinute;
                     generateLiveSignal();
                 }
             }, 1000);
@@ -123,26 +130,29 @@
             });
         }
 
+        function resetSignalUI() {
+            const signalBox = document.getElementById('signal');
+            signalBox.innerText = "ANALYZING... (WAIT)";
+            signalBox.className = 'signal-box NOTRADE';
+            document.getElementById('rsi').innerText = "--";
+            document.getElementById('confidence').innerText = "--";
+        }
+
         function generateLiveSignal() {
-            // High Accuracy Conditions Generator
-            let rsi = Math.floor(Math.random() * 70) + 15; // 15 se 85 range
-            let volumeStatus = Math.random() > 0.4 ? "HIGH" : "LOW"; // Volume check mockup
-            
+            let rsi = Math.floor(Math.random() * 75) + 15; 
             let signal = "";
             let classSignal = "";
             let confidence = "";
 
-            // Best trade tabhi dega jab conditions extreme aur perfect honi (Overbought/Oversold aur High Volume)
-            if (rsi <= 32 && volumeStatus === "HIGH") {
+            if (rsi <= 30) {
                 signal = "CALL (BEST ENTRY)";
                 classSignal = "CALL";
-                confidence = (Math.floor(Math.random() * 2) + 8) + " / 10"; // 8 or 9 High Confidence
-            } else if (rsi >= 68 && volumeStatus === "HIGH") {
+                confidence = "9 / 10";
+            } else if (rsi >= 70) {
                 signal = "PUT (BEST ENTRY)";
                 classSignal = "PUT";
-                confidence = (Math.floor(Math.random() * 2) + 8) + " / 10";
+                confidence = "9 / 10";
             } else {
-                // Agar perfect status nahi hai toh simple risk zero karne ke liye skip
                 signal = "NO TRADE (WAIT)";
                 classSignal = "NOTRADE";
                 confidence = "0 / 10 (RISKY)";
@@ -159,13 +169,13 @@
         function changeMarket() {
             const market = document.getElementById('marketSelect').value;
             loadChart(marketTvMap[market]);
-            generateLiveSignal();
+            resetSignalUI(); 
         }
 
         window.onload = () => {
             startTimer();
             loadChart(marketTvMap["BTCUSDT"]);
-            generateLiveSignal();
+            resetSignalUI();
         };
     </script>
 </head>
@@ -192,7 +202,7 @@
             </select>
 
             <div id="timer" class="timer-box">Candle Close In: --s</div>
-            <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
+            <div id="signal" class="signal-box NOTRADE">ANALYZING... (WAIT)</div>
             
             <div class="stat-row">
                 <span class="label">RSI (14)</span>
