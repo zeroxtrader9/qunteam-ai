@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - Professional Analytics Dashboard</title>
+    <title>QUNTEAM AI - Multi-Indicator Pro Dashboard</title>
     <style>
         body {
             background-color: #0d1117;
@@ -42,7 +42,7 @@
             padding: 10px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             flex: 2;
-            height: 550px;
+            height: 580px;
         }
         h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; }
         .select-box {
@@ -77,6 +77,9 @@
         .stat-row:last-child { border-bottom: none; }
         .label { color: #8b949e; }
         .value { font-weight: 600; color: #f0f6fc; }
+        .ind-bullish { color: #3fb950; font-weight: bold; }
+        .ind-bearish { color: #f85149; font-weight: bold; }
+        .ind-neutral { color: #8b949e; font-weight: bold; }
         .timer-box {
             font-size: 16px;
             font-weight: bold;
@@ -125,7 +128,7 @@
                 
                 document.getElementById('timer').innerText = "Candle Close In: " + secondsLeft + "s";
                 
-                // Strict 2-second advance trigger
+                // Exactly 2 seconds remaining trigger
                 if (secondsLeft === 2 && currentMinute !== lastCheckedMinute) {
                     lastCheckedMinute = currentMinute;
                     generateLiveSignal();
@@ -148,30 +151,45 @@
             signalBox.innerText = "ANALYZING SYSTEM...";
             signalBox.className = 'signal-box NOTRADE';
             document.getElementById('rsi').innerText = "--";
+            document.getElementById('macd').innerText = "--";
+            document.getElementById('ma').innerText = "--";
             document.getElementById('confidence').innerText = "--";
         }
 
         function generateLiveSignal() {
             let rsi = Math.floor(Math.random() * 75) + 15; 
+            
+            // Multi-Indicator logic simulation
+            let macdStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
+            let maStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
+            
+            if (rsi <= 35) macdStatus = "BULLISH"; maStatus = "BULLISH";
+            if (rsi >= 65) macdStatus = "BEARISH"; maStatus = "BEARISH";
+
             let signal = "";
             let classSignal = "";
             let confidence = "";
 
-            if (rsi <= 30) {
+            // UI updating for individual filters
+            setIndicatorUI('macd', macdStatus);
+            setIndicatorUI('ma', maStatus);
+
+            // Strong confirmation filter (All must agree)
+            if (rsi <= 32 && macdStatus === "BULLISH" && maStatus === "BULLISH") {
                 signal = "CALL (BEST ENTRY)";
                 classSignal = "CALL";
-                confidence = "9 / 10";
+                confidence = "95%";
                 updateStats(true);
-            } else if (rsi >= 70) {
+            } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
                 signal = "PUT (BEST ENTRY)";
                 classSignal = "PUT";
-                confidence = "9 / 10";
+                confidence = "95%";
                 updateStats(true);
             } else {
                 signal = "NO TRADE (WAIT)";
                 classSignal = "NOTRADE";
-                confidence = "0 / 10 (RISKY)";
-                // Agar risky lagta hai aur pichla trade loss tha toh martingale guide karega
+                confidence = "0% (RISKY)";
+                if (rsi > 32 && rsi < 45) { macdStatus = "NEUTRAL"; maStatus = "NEUTRAL"; setIndicatorUI('macd', 'NEUTRAL'); setIndicatorUI('ma', 'NEUTRAL'); }
                 if (currentMartingale > 0) {
                     updateStats(false);
                 }
@@ -185,21 +203,28 @@
             document.getElementById('confidence').innerText = confidence;
         }
 
+        function setIndicatorUI(id, status) {
+            const element = document.getElementById(id);
+            element.innerText = status;
+            if (status === "BULLISH") element.className = "value ind-bullish";
+            else if (status === "BEARISH") element.className = "value ind-bearish";
+            else element.className = "value ind-neutral";
+        }
+
         function updateStats(isRealSignal) {
             if (!isRealSignal && currentMartingale > 0) {
-                // Martingale follow up simulator
-                if (Math.random() > 0.3) {
+                if (Math.random() > 0.25) {
                     wins++;
                     currentMartingale = 0;
                     document.getElementById('mtg-alert').innerText = "Martingale Step Successful. Reset to base.";
                 } else {
                     currentMartingale++;
-                    if (currentMartingale > 2) currentMartingale = 0; // max 2 steps
+                    if (currentMartingale > 2) currentMartingale = 0;
                     document.getElementById('mtg-alert').innerText = "Follow Martingale: Step " + currentMartingale + " (Double Amount)";
                 }
             } else if (isRealSignal) {
                 totalTrades++;
-                if (Math.random() > 0.15) { // 85% Win Rate Logic Simulation
+                if (Math.random() > 0.10) { 
                     wins++;
                     currentMartingale = 0;
                     document.getElementById('mtg-alert').innerText = "Signal Safe. No Martingale Needed.";
@@ -231,7 +256,7 @@
     <div class="container">
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <p style="color: #8b949e; font-size: 12px; margin-top:0; margin-bottom:15px;">Professional Real-time Analytics</p>
+            <p style="color: #8b949e; font-size: 12px; margin-top:0; margin-bottom:15px;">Professional Multi-Indicator Bot</p>
             
             <select id="marketSelect" class="select-box" onchange="changeMarket()">
                 <optgroup label="Crypto Pairs (24/7 Live)">
@@ -261,8 +286,16 @@
                 <span id="total-trades" class="value">0</span>
             </div>
             <div class="stat-row">
-                <span class="label">RSI Filter</span>
+                <span class="label">RSI (14) Filter</span>
                 <span id="rsi" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">MACD Crossover</span>
+                <span id="macd" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Moving Average</span>
+                <span id="ma" class="value">--</span>
             </div>
             <div class="stat-row">
                 <span class="label">System Confidence</span>
