@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - VIP Multi-Indicator Bot</title>
+    <title>QUNTEAM AI - APP DASHBOARD</title>
     <style>
         body {
             background-color: #0d1117;
@@ -12,7 +12,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
             padding: 10px;
@@ -20,41 +20,39 @@
         }
         .container {
             display: flex;
-            flex-direction: row;
-            gap: 15px;
-            max-width: 1200px;
+            flex-direction: column;
+            gap: 12px;
             width: 100%;
+            max-width: 480px;
         }
         .card {
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            flex: 1;
-            max-width: 360px;
-            position: relative;
         }
         .chart-card {
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 12px;
-            padding: 10px;
+            padding: 5px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            flex: 2;
-            height: 590px;
+            height: 380px;
+            width: 100%;
+            box-sizing: border-box;
         }
-        h1 { font-size: 24px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; font-weight: 800; letter-spacing: 1px; }
+        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; font-weight: 800; letter-spacing: 1px; }
         .demo-badge {
-            background: linear-gradient(45deg, #ffc107, #ff8800);
-            color: #000;
+            background: linear-gradient(45deg, #00ff66, #0088cc);
+            color: #fff;
             font-size: 11px;
             font-weight: bold;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             display: inline-block;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         .select-box {
             background-color: #21262d;
@@ -64,16 +62,16 @@
             border-radius: 6px;
             width: 100%;
             font-size: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             outline: none;
             cursor: pointer;
         }
         .signal-box {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             letter-spacing: 1px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
@@ -83,8 +81,9 @@
         .stat-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #21262d;
+            font-size: 14px;
         }
         .stat-row:last-child { border-bottom: none; }
         .label { color: #8b949e; }
@@ -93,13 +92,13 @@
         .ind-bearish { color: #f85149; font-weight: bold; }
         .ind-neutral { color: #8b949e; font-weight: bold; }
         .timer-box {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: #ffc107;
             background: rgba(255, 193, 7, 0.1);
             padding: 8px;
             border-radius: 6px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border: 1px solid rgba(255, 193, 7, 0.3);
         }
         .martingale-box {
@@ -108,49 +107,9 @@
             color: #58a6ff;
             padding: 10px;
             border-radius: 8px;
-            margin-top: 15px;
-            font-size: 14px;
+            margin-top: 12px;
+            font-size: 13px;
             font-weight: bold;
-        }
-        #expired-screen {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #0d1117;
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-        }
-        .expired-card {
-            background-color: #161b22;
-            border: 2px solid #f85149;
-            padding: 40px;
-            border-radius: 16px;
-            max-width: 500px;
-            box-shadow: 0 0 30px rgba(248,81,73,0.3);
-        }
-        .expired-btn {
-            background: linear-gradient(45deg, #58a6ff, #1f6feb);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
-            transition: 0.3s;
-        }
-        .expired-btn:hover { transform: scale(1.05); }
-        @media (max-width: 768px) {
-            .container { flex-direction: column; align-items: center; }
-            .card, .chart-card { width: 100%; max-width: 100%; }
-            .chart-card { height: 380px; }
         }
     </style>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
@@ -164,44 +123,15 @@
         let totalTrades = 0;
         let wins = 0;
         let currentMartingale = 0;
-        let demoTimeLeft = 1500; // 25 Minutes in seconds (25 * 60)
-
-        function checkDemoStatus() {
-            if (localStorage.getItem('qunteam_demo_start_25')) {
-                let startTime = parseInt(localStorage.getItem('qunteam_demo_start_25'));
-                let currentTime = Math.floor(Date.now() / 1000);
-                let elapsedTime = currentTime - startTime;
-                demoTimeLeft = 1500 - elapsedTime;
-            } else {
-                localStorage.setItem('qunteam_demo_start_25', Math.floor(Date.now() / 1000).toString());
-            }
-
-            if (demoTimeLeft <= 0) {
-                document.getElementById('expired-screen').style.display = 'flex';
-                document.getElementById('main-container').style.display = 'none';
-            }
-        }
 
         function startTimer() {
             setInterval(() => {
-                checkDemoStatus();
-                if (demoTimeLeft <= 0) return;
-
-                demoTimeLeft--;
-                
-                let mins = Math.floor(demoTimeLeft / 60);
-                let secs = demoTimeLeft % 60;
-                document.getElementById('demo-timer').innerText = `FREE TRIAL TIME: ${mins}m ${secs}s`;
-
                 const now = new Date();
-                const currentSecond = now.getSeconds();
-                const currentMinute = now.getMinutes();
-                const secondsLeft = 60 - currentSecond;
+                const secondsLeft = 60 - now.getSeconds();
+                document.getElementById('timer').innerText = "Next Scan In: " + secondsLeft + "s";
                 
-                document.getElementById('timer').innerText = "Candle Close In: " + secondsLeft + "s";
-                
-                if (secondsLeft === 2 && currentMinute !== lastCheckedMinute) {
-                    lastCheckedMinute = currentMinute;
+                if (secondsLeft === 2 && now.getMinutes() !== lastCheckedMinute) {
+                    lastCheckedMinute = now.getMinutes();
                     generateLiveSignal();
                 }
             }, 1000);
@@ -212,14 +142,14 @@
                 "width": "100%", "height": "100%", "symbol": symbol,
                 "interval": "1", "timezone": "Etc/UTC", "theme": "dark",
                 "style": "1", "locale": "en", "enable_publishing": false,
-                "hide_side_toolbar": false, "allow_symbol_change": false,
+                "hide_side_toolbar": true, "allow_symbol_change": false,
                 "container_id": "tv-chart-container"
             });
         }
 
         function resetSignalUI() {
             const signalBox = document.getElementById('signal');
-            signalBox.innerText = "ANALYZING SYSTEM...";
+            signalBox.innerText = "SCANNING MARKET...";
             signalBox.className = 'signal-box NOTRADE';
             document.getElementById('rsi').innerText = "--";
             document.getElementById('macd').innerText = "--";
@@ -243,12 +173,12 @@
             setIndicatorUI('ma', maStatus);
 
             if (rsi <= 32 && macdStatus === "BULLISH" && maStatus === "BULLISH") {
-                signal = "CALL (BEST ENTRY)";
+                signal = "CALL (VIP SIGNAL)";
                 classSignal = "CALL";
                 confidence = "96%";
                 updateStats(true);
             } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
-                signal = "PUT (BEST ENTRY)";
+                signal = "PUT (VIP SIGNAL)";
                 classSignal = "PUT";
                 confidence = "96%";
                 updateStats(true);
@@ -283,21 +213,21 @@
                 if (Math.random() > 0.22) {
                     wins++;
                     currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Martingale Step Successful. Reset to base.";
+                    document.getElementById('mtg-alert').innerText = "Martingale Win. Signal Reset.";
                 } else {
                     currentMartingale++;
                     if (currentMartingale > 2) currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Follow Martingale: Step " + currentMartingale + " (Double Amount)";
+                    document.getElementById('mtg-alert').innerText = "Martingale Step " + currentMartingale + " (Double Bet)";
                 }
             } else if (isRealSignal) {
                 totalTrades++;
                 if (Math.random() > 0.12) { 
                     wins++;
                     currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Signal Safe. No Martingale Needed.";
+                    document.getElementById('mtg-alert').innerText = "Signal Won Successfully.";
                 } else {
                     currentMartingale = 1;
-                    document.getElementById('mtg-alert').innerText = "Next Candle: Apply Martingale Step 1";
+                    document.getElementById('mtg-alert').innerText = "Apply Martingale Step 1";
                 }
             }
 
@@ -313,26 +243,25 @@
         }
 
         window.onload = () => {
-            checkDemoStatus();
-            startTimer();
             loadChart(marketTvMap["BTCUSDT"]);
+            startTimer();
             resetSignalUI();
         };
     </script>
 </head>
 <body>
 
-    <div class="container" id="main-container">
+    <div class="container">
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <div id="demo-timer" class="demo-badge">FREE TRIAL TIME: 25m 0s</div>
+            <div class="demo-badge">VIP TERMINAL SECURE</div>
             
             <select id="marketSelect" class="select-box" onchange="changeMarket()">
-                <optgroup label="Crypto Pairs (24/7 Live)">
+                <optgroup label="Crypto Pairs">
                     <option value="BTCUSDT" selected>BTC / USDT</option>
                     <option value="ETHUSDT">ETH / USDT</option>
                 </optgroup>
-                <optgroup label="Forex Pairs (Live)">
+                <optgroup label="Forex Pairs">
                     <option value="EURUSD">EUR / USD</option>
                     <option value="GBPUSD">GBP / USD</option>
                     <option value="USDJPY">USD / JPY</option>
@@ -341,12 +270,12 @@
                 </optgroup>
             </select>
 
-            <div id="timer" class="timer-box">Candle Close In: --s</div>
+            <div id="timer" class="timer-box">Connecting TradingView...</div>
             <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
             
             <div class="stat-row">
                 <span class="label">AI Win Rate</span>
-                <span id="win-rate" class="value" style="color: #3fb950; text-shadow: 0 0 5px rgba(63,185,80,0.3);">100%</span>
+                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
             </div>
             <div class="stat-row">
                 <span class="label">Total Evaluated</span>
@@ -369,20 +298,11 @@
                 <span id="confidence" class="value">--</span>
             </div>
 
-            <div id="mtg-alert" class="martingale-box">VIP System Live & Active</div>
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online</div>
         </div>
 
         <div class="chart-card">
             <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
-        </div>
-    </div>
-
-    <!-- Expired Screen -->
-    <div id="expired-screen">
-        <div class="expired-card">
-            <h1 style="color: #f85149; font-size: 32px; margin-bottom: 10px;">DEMO EXPIRED!</h1>
-            <p style="color: #8b949e; font-size: 16px; line-height: 1.5;">Your 25-Minute free trial access has ended. To get your permanent VIP License Key and continue using QUNTEAM AI signals, click the button below to contact the admin.</p>
-            <a href="https://t.me/Tarederzerox" target="_blank" class="expired-btn">CONTACT OWNER FOR VIP ACCESS</a>
         </div>
     </div>
 
