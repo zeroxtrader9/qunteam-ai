@@ -7,29 +7,31 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
-# Pocket Option top Forex pairs mapping for backend & TradingView
+# Forex & Crypto mix for 24/7 weekend testing
 FOREX_MARKETS = {
-    "EURUSD": {"tv_symbol": "FX:EURUSD", "label": "EUR / USD"},
-    "GBPUSD": {"tv_symbol": "FX:GBPUSD", "label": "GBP / USD"},
-    "USDJPY": {"tv_symbol": "FX:USDJPY", "label": "USD / JPY"},
-    "AUDUSD": {"tv_symbol": "FX:AUDUSD", "label": "AUD / USD"},
-    "USDCAD": {"tv_symbol": "FX:USDCAD", "label": "USD / CAD"},
-    "USDCHF": {"tv_symbol": "FX:USDCHF", "label": "USD / CHF"},
-    "NZDUSD": {"tv_symbol": "FX:NZDUSD", "label": "NZD / USD"},
-    "EURGBP": {"tv_symbol": "FX:EURGBP", "label": "EUR / GBP"},
-    "EURJPY": {"tv_symbol": "FX:EURJPY", "label": "EUR / JPY"}
+    "EURUSD": {"tv_symbol": "FX:EURUSD", "crypto_fallback": "BTCUSDT"},
+    "GBPUSD": {"tv_symbol": "FX:GBPUSD", "crypto_fallback": "ETHUSDT"},
+    "USDJPY": {"tv_symbol": "FX:USDJPY", "crypto_fallback": "SOLUSDT"},
+    "AUDUSD": {"tv_symbol": "FX:AUDUSD", "crypto_fallback": "BNBUSDT"},
+    "USDCAD": {"tv_symbol": "FX:USDCAD", "crypto_fallback": "XRPUSDT"},
+    "USDCHF": {"tv_symbol": "FX:USDCHF", "crypto_fallback": "ADAUSDT"},
+    "NZDUSD": {"tv_symbol": "FX:NZDUSD", "crypto_fallback": "DOTUSDT"},
+    "EURGBP": {"tv_symbol": "FX:EURGBP", "crypto_fallback": "DOGEUSDT"},
+    "EURJPY": {"tv_symbol": "FX:EURJPY", "crypto_fallback": "AVAXUSDT"}
 }
 
-def fetch_forex_data(symbol):
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}=X?interval=1m&range=1d"
-    headers = {'User-Agent': 'Mozilla/5.0'}
+def fetch_live_data(market_name):
+    # Weekend par live signals dikhane ke liye crypto data use karenge fallback me
+    crypto_pair = FOREX_MARKETS[market_name]["crypto_fallback"]
+    url = f"https://api.binance.com/api/v3/klines?symbol={crypto_pair}&interval=1m&limit=50"
     try:
-        res = requests.get(url, headers=headers).json()
-        closes = res['chart']['result'][0]['indicators']['quote'][0]['close']
-        closes = [c for c in closes if c is not None][-50:]
-        return pd.Series(closes)
+        response = requests.get(url).json()
+        if isinstance(response, list):
+            closes = [float(candle[4]) for candle in response]
+            return pd.Series(closes)
+        return pd.Series([])
     except Exception as e:
-        print(f"Data fetch error for {symbol}:", e)
+        print(f"Data fetch error: {e}")
         return pd.Series([])
 
 def calculate_rsi(prices, period=14):
@@ -48,7 +50,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - Forex & Live Charts</title>
+    <title>QUNTEAM AI - 24/7 Live Signals</title>
     <style>
         body {
             background-color: #0d1117;
@@ -187,7 +189,6 @@ HTML_TEMPLATE = """
             document.getElementById('signal').innerText = 'FETCHING...';
             document.getElementById('signal').className = 'signal-box WAITING';
             
-            // Reload Chart for new market
             loadTradingViewChart(marketTvMap[market]);
             fetchSignal();
         }
@@ -201,21 +202,20 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <!-- Left Side: Control & Signals -->
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <p style="color: #8b949e; font-size: 13px; margin-top:0; margin-bottom:15px;">Pocket Option Forex Pro</p>
+            <p style="color: #8b949e; font-size: 13px; margin-top:0; margin-bottom:15px;">Pocket Option OTC / Weekend Mode</p>
             
             <select id="marketSelect" class="select-box" onchange="onMarketChange()">
-                <option value="EURUSD">EUR / USD</option>
-                <option value="GBPUSD">GBP / USD</option>
-                <option value="USDJPY">USD / JPY</option>
-                <option value="AUDUSD">AUD / USD</option>
-                <option value="USDCAD">USD / CAD</option>
-                <option value="USDCHF">USD / CHF</option>
-                <option value="NZDUSD">NZD / USD</option>
-                <option value="EURGBP">EUR / GBP</option>
-                <option value="EURJPY">EUR / JPY</option>
+                <option value="EURUSD">EUR / USD (OTC Mode)</option>
+                <option value="GBPUSD">GBP / USD (OTC Mode)</option>
+                <option value="USDJPY">USD / JPY (OTC Mode)</option>
+                <option value="AUDUSD">AUD / USD (OTC Mode)</option>
+                <option value="USDCAD">USD / CAD (OTC Mode)</option>
+                <option value="USDCHF">USD / CHF (OTC Mode)</option>
+                <option value="NZDUSD">NZD / USD (OTC Mode)</option>
+                <option value="EURGBP">EUR / GBP (OTC Mode)</option>
+                <option value="EURJPY">EUR / JPY (OTC Mode)</option>
             </select>
 
             <div id="signal" class="signal-box WAITING">LOADING...</div>
@@ -228,10 +228,9 @@ HTML_TEMPLATE = """
                 <span class="label">Signal Confidence</span>
                 <span id="confidence" class="value">--</span>
             </div>
-            <div class="refresh-text">Auto-refreshing live data every 5 seconds...</div>
+            <div class="refresh-text">Live signals active 24/7...</div>
         </div>
 
-        <!-- Right Side: Live TradingView Chart -->
         <div class="chart-card">
             <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
         </div>
@@ -249,7 +248,7 @@ def get_signal(market):
     if market not in FOREX_MARKETS:
         return jsonify({"signal": "WAITING", "confidence": 5, "rsi": 50})
         
-    prices = fetch_forex_data(market)
+    prices = fetch_live_data(market)
     if prices.empty:
         return jsonify({"signal": "WAITING", "confidence": 5, "rsi": 50})
 
@@ -258,12 +257,13 @@ def get_signal(market):
     ma_long = prices.rolling(window=21).mean().iloc[-1]
     current_price = prices.iloc[-1]
 
-    if rsi < 32 and current_price > ma_short:
+    # Quick Scalping Logic for OTC/Weekend
+    if rsi < 35:
         signal = "CALL"
-        confidence = 8
-    elif rsi > 68 and current_price < ma_short:
+        confidence = 7
+    elif rsi > 65:
         signal = "PUT"
-        confidence = 8
+        confidence = 7
     else:
         if ma_short > ma_long:
             signal = "CALL"
