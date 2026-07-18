@@ -74,6 +74,7 @@ HTML_TEMPLATE = """
         }
         .CALL { background-color: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid #2ea043; }
         .PUT { background-color: rgba(248, 81, 73, 0.2); color: #f85149; border: 1px solid #f85149; }
+        .WAITING { background-color: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #30363d; }
         .stat-row {
             display: flex;
             justify-content: space-between;
@@ -112,6 +113,11 @@ HTML_TEMPLATE = """
                 const now = new Date();
                 const secondsLeft = 60 - now.getSeconds();
                 document.getElementById('timer').innerText = "Candle Close In: " + secondsLeft + "s";
+                
+                // Naya signal sirf minute ke starting par he change hoga
+                if (secondsLeft === 60) {
+                    generateLiveSignal();
+                }
             }, 1000);
         }
 
@@ -126,10 +132,9 @@ HTML_TEMPLATE = """
         }
 
         function generateLiveSignal() {
-            // Instant indicator calculation without server dependencies
-            let rsi = Math.floor(Math.random() * 50) + 25; 
+            let rsi = Math.floor(Math.random() * 40) + 30; 
             let confidence = Math.floor(Math.random() * 3) + 6;
-            let signal = rsi < 48 ? "CALL" : "PUT";
+            let signal = rsi < 50 ? "CALL" : "PUT";
 
             const signalBox = document.getElementById('signal');
             signalBox.innerText = signal;
@@ -147,9 +152,8 @@ HTML_TEMPLATE = """
 
         window.onload = () => {
             startTimer();
-            loadChart(marketTvMap["EURUSD"]);
+            loadChart(marketTvMap["BTCUSDT"]);
             generateLiveSignal();
-            setInterval(generateLiveSignal, 5000);
         };
     </script>
 </head>
@@ -161,11 +165,11 @@ HTML_TEMPLATE = """
             
             <select id="marketSelect" class="select-box" onchange="changeMarket()">
                 <optgroup label="Crypto Pairs (24/7 Live)">
-                    <option value="BTCUSDT">BTC / USDT</option>
+                    <option value="BTCUSDT" selected>BTC / USDT</option>
                     <option value="ETHUSDT">ETH / USDT</option>
                 </optgroup>
                 <optgroup label="Forex Pairs (Live Monday)">
-                    <option value="EURUSD" selected>EUR / USD</option>
+                    <option value="EURUSD">EUR / USD</option>
                     <option value="GBPUSD">GBP / USD</option>
                     <option value="USDJPY">USD / JPY</option>
                     <option value="AUDUSD">AUD / USD</option>
@@ -176,7 +180,7 @@ HTML_TEMPLATE = """
             </select>
 
             <div id="timer" class="timer-box">Candle Close In: --s</div>
-            <div id="signal" class="signal-box CALL">CALL</div>
+            <div id="signal" class="signal-box WAITING">LOADING...</div>
             
             <div class="stat-row">
                 <span class="label">RSI (14)</span>
