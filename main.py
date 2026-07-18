@@ -8,12 +8,15 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-# Forex aur Crypto markets ka dynamic list
+# All Pocket Option Forex and Crypto pairs mapping
 MARKETS = {
     "EURUSD": {"tv_symbol": "FX:EURUSD", "type": "forex"},
     "GBPUSD": {"tv_symbol": "FX:GBPUSD", "type": "forex"},
     "USDJPY": {"tv_symbol": "FX:USDJPY", "type": "forex"},
     "AUDUSD": {"tv_symbol": "FX:AUDUSD", "type": "forex"},
+    "USDCAD": {"tv_symbol": "FX:USDCAD", "type": "forex"},
+    "USDCHF": {"tv_symbol": "FX:USDCHF", "type": "forex"},
+    "NZDUSD": {"tv_symbol": "FX:NZDUSD", "type": "forex"},
     "BTCUSDT": {"tv_symbol": "BINANCE:BTCUSDT", "type": "crypto"},
     "ETHUSDT": {"tv_symbol": "BINANCE:ETHUSDT", "type": "crypto"}
 }
@@ -28,7 +31,6 @@ def fetch_market_data(symbol, mtype):
         except:
             return pd.Series([])
     else:
-        # Forex pairs ka live standard api source
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}=X?interval=1m&range=1d"
         headers = {'User-Agent': 'Mozilla/5.0'}
         try:
@@ -55,7 +57,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - Pro Dashboard</title>
+    <title>QUNTEAM AI - Live Pro Dashboard</title>
     <style>
         body {
             background-color: #0d1117;
@@ -67,36 +69,36 @@ HTML_TEMPLATE = """
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             box-sizing: border-box;
         }
         .container {
             display: flex;
             flex-direction: row;
-            gap: 20px;
-            max-width: 1050px;
+            gap: 15px;
+            max-width: 1100px;
             width: 100%;
         }
         .card {
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 12px;
-            padding: 25px;
+            padding: 20px;
             text-align: center;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             flex: 1;
-            max-width: 360px;
+            max-width: 340px;
         }
         .chart-card {
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 12px;
-            padding: 15px;
+            padding: 10px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             flex: 2;
-            height: 480px;
+            height: 500px;
         }
-        h1 { font-size: 24px; margin-bottom: 5px; color: #58a6ff; }
+        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; }
         .select-box {
             background-color: #21262d;
             color: #c9d1d9;
@@ -104,17 +106,17 @@ HTML_TEMPLATE = """
             padding: 10px;
             border-radius: 6px;
             width: 100%;
-            font-size: 16px;
-            margin-bottom: 20px;
+            font-size: 15px;
+            margin-bottom: 15px;
             outline: none;
             cursor: pointer;
         }
         .signal-box {
-            font-size: 36px;
+            font-size: 34px;
             font-weight: bold;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             letter-spacing: 2px;
         }
         .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; }
@@ -123,14 +125,14 @@ HTML_TEMPLATE = """
         .stat-row {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #21262d;
         }
         .stat-row:last-child { border-bottom: none; }
         .label { color: #8b949e; }
         .value { font-weight: 600; color: #f0f6fc; }
         .timer-box {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #ffc107;
             background: rgba(255, 193, 7, 0.1);
@@ -150,40 +152,29 @@ HTML_TEMPLATE = """
     <script>
         let tvWidget;
         const marketTvMap = {
-            "EURUSD": "FX:EURUSD",
-            "GBPUSD": "FX:GBPUSD",
-            "USDJPY": "FX:USDJPY",
-            "AUDUSD": "FX:AUDUSD",
-            "BTCUSDT": "BINANCE:BTCUSDT",
-            "ETHUSDT": "BINANCE:ETHUSDT"
+            "EURUSD": "FX:EURUSD", "GBPUSD": "FX:GBPUSD", "USDJPY": "FX:USDJPY",
+            "AUDUSD": "FX:AUDUSD", "USDCAD": "FX:USDCAD", "USDCHF": "FX:USDCHF",
+            "NZDUSD": "FX:NZDUSD", "BTCUSDT": "BINANCE:BTCUSDT", "ETHUSDT": "BINANCE:ETHUSDT"
         };
 
-        function startCandleTimer() {
+        function startTimer() {
             setInterval(() => {
                 const now = new Date();
                 const secondsLeft = 60 - now.getSeconds();
-                document.getElementById('timer').innerText = "Candle Closes In: " + secondsLeft + "s";
+                document.getElementById('timer').innerText = "Candle Close In: " + secondsLeft + "s";
                 
-                // Har minute ki starting par automatically signal fetch karega
-                if (secondsLeft === 60 || secondsLeft === 30) {
+                if (secondsLeft === 60 || secondsLeft === 30 || secondsLeft === 1) {
                     fetchSignal();
                 }
             }, 1000);
         }
 
-        function loadTradingViewChart(symbol) {
+        function loadChart(symbol) {
             tvWidget = new TradingView.widget({
-                "width": "100%",
-                "height": "100%",
-                "symbol": symbol,
-                "interval": "1",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": false,
+                "width": "100%", "height": "100%", "symbol": symbol,
+                "interval": "1", "timezone": "Etc/UTC", "theme": "dark",
+                "style": "1", "locale": "en", "enable_publishing": false,
+                "hide_side_toolbar": false, "allow_symbol_change": false,
                 "container_id": "tv-chart-container"
             });
         }
@@ -200,24 +191,21 @@ HTML_TEMPLATE = """
                 
                 document.getElementById('rsi').innerText = data.rsi;
                 document.getElementById('confidence').innerText = data.confidence + ' / 10';
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
         }
 
-        function onMarketChange() {
+        function changeMarket() {
             const market = document.getElementById('marketSelect').value;
             document.getElementById('signal').innerText = 'FETCHING...';
             document.getElementById('signal').className = 'signal-box WAITING';
-            
-            loadTradingViewChart(marketTvMap[market]);
+            loadChart(marketTvMap[market]);
             fetchSignal();
         }
 
         window.onload = () => {
             fetchSignal();
-            startCandleTimer();
-            loadTradingViewChart(marketTvMap["EURUSD"]);
+            startTimer();
+            loadChart(marketTvMap["EURUSD"]);
         };
     </script>
 </head>
@@ -225,31 +213,33 @@ HTML_TEMPLATE = """
     <div class="container">
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <p style="color: #8b949e; font-size: 13px; margin-top:0; margin-bottom:15px;">Live 1M Pro Analyzer</p>
+            <p style="color: #8b949e; font-size: 12px; margin-top:0; margin-bottom:15px;">All Markets 1M Pro Dashboard</p>
             
-            <select id="marketSelect" class="select-box" onchange="onMarketChange()">
-                <optgroup label="Forex Markets">
+            <select id="marketSelect" class="select-box" onchange="changeMarket()">
+                <optgroup label="Forex Pairs">
                     <option value="EURUSD">EUR / USD</option>
                     <option value="GBPUSD">GBP / USD</option>
                     <option value="USDJPY">USD / JPY</option>
                     <option value="AUDUSD">AUD / USD</option>
+                    <option value="USDCAD">USD / CAD</option>
+                    <option value="USDCHF">USD / CHF</option>
+                    <option value="NZDUSD">NZD / USD</option>
                 </optgroup>
-                <optgroup label="Crypto Markets">
-                    <option value="BTCUSDT">BTC / USDT (Live Now)</option>
-                    <option value="ETHUSDT">ETH / USDT (Live Now)</option>
+                <optgroup label="Crypto Pairs (24/7)">
+                    <option value="BTCUSDT">BTC / USDT</option>
+                    <option value="ETHUSDT">ETH / USDT</option>
                 </optgroup>
             </select>
 
-            <div id="timer" class="timer-box">Candle Closes In: --s</div>
-
+            <div id="timer" class="timer-box">Candle Close In: --s</div>
             <div id="signal" class="signal-box WAITING">LOADING...</div>
             
             <div class="stat-row">
-                <span class="label">RSI (14) Indicator</span>
+                <span class="label">RSI (14)</span>
                 <span id="rsi" class="value">--</span>
             </div>
             <div class="stat-row">
-                <span class="label">Signal Confidence</span>
+                <span class="label">Confidence</span>
                 <span id="confidence" class="value">--</span>
             </div>
         </div>
@@ -278,17 +268,16 @@ def get_signal(market):
 
     rsi = calculate_rsi(prices)
     ma_short = prices.rolling(window=9).mean().iloc[-1]
-    ma_long = prices.rolling(window=21).mean().iloc[-1]
     current_price = prices.iloc[-1]
 
-    if rsi < 35 and current_price > ma_short:
+    if rsi < 32:
         signal = "CALL"
         confidence = 8
-    elif rsi > 65 and current_price < ma_short:
+    elif rsi > 68:
         signal = "PUT"
         confidence = 8
     else:
-        if ma_short > ma_long:
+        if current_price > ma_short:
             signal = "CALL"
             confidence = 6
         else:
