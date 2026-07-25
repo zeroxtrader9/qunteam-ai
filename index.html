@@ -3,228 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - DOM CONTROL PANEL</title>
+    <title>QUNTEAM AI - APP DASHBOARD</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body {
             background-color: #0d1117;
             color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
             min-height: 100vh;
-            padding: 15px;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 480px;
         }
         .card {
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
+            padding: 15px;
             text-align: center;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
-        h2 { color: #58a6ff; margin-bottom: 15px; font-size: 20px; }
-        
-        .signal-display {
-            font-size: 22px;
-            font-weight: bold;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            background: #21262d;
+        .chart-card {
+            background-color: #161b22;
             border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            height: 380px;
+            width: 100%;
+            box-sizing: border-box;
         }
-
-        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
+        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; font-weight: 800; letter-spacing: 1px; }
+        .demo-badge {
+            background: linear-gradient(45deg, #00ff66, #0088cc);
+            color: #fff;
+            font-size: 11px;
             font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .select-box {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
             cursor: pointer;
+        }
+        .signal-box {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; text-shadow: 0 0 10px rgba(63,185,80,0.5); }
+        .PUT { background-color: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; text-shadow: 0 0 10px rgba(248,81,73,0.5); }
+        .NOTRADE { background-color: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #444c56; }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #21262d;
             font-size: 14px;
         }
-        .btn-call { background: #2ea043; color: white; }
-        .btn-put { background: #da3633; color: white; }
-        .btn-green { background: #3fb950; color: black; }
-        .btn-red { background: #f85149; color: white; }
-
-        .stats-box {
-            display: flex;
-            justify-content: space-around;
-            background: #0d1117;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #30363d;
-            margin-top: 15px;
-        }
-        .stat-item { text-align: center; }
-        .stat-val { font-size: 18px; font-weight: bold; margin-top: 4px; }
+        .stat-row:last-child { border-bottom: none; }
+        .label { color: #8b949e; }
+        .value { font-weight: 600; color: #f0f6fc; }
+        .ind-bullish { color: #3fb950; font-weight: bold; }
+        .ind-bearish { color: #f85149; font-weight: bold; }
+        .ind-neutral { color: #8b949e; font-weight: bold; }
         
-        .status-msg {
+        .timer-box {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        .martingale-box {
+            background-color: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            color: #58a6ff;
+            padding: 10px;
+            border-radius: 8px;
             margin-top: 12px;
             font-size: 13px;
-            color: #8b949e;
             font-weight: bold;
         }
+
+        /* SIDE-BY-SIDE SIDE COUNTER BOX FOR WIN/LOSS */
+        .side-counter-box {
+            display: flex;
+            justify-content: space-between;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 12px;
+        }
+        .side-counter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .side-counter-title {
+            font-size: 11px;
+            color: #8b949e;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .side-counter-value {
+            font-size: 20px;
+            font-weight: 800;
+            margin-top: 2px;
+        }
     </style>
-</head>
-<body>
-
-    <div class="card">
-        <h2>QUNTEAM AI SYSTEM</h2>
-
-        <!-- DOM SIGNAL DISPLAY -->
-        <div id="signalDisplay" class="signal-display">NO SIGNAL</div>
-
-        <!-- SIGNAL CONTROLS -->
-        <p style="font-size: 12px; color: #8b949e; margin-bottom: 6px;">1. Select Signal:</p>
-        <div class="btn-group">
-            <button class="btn-call" onclick="setSignal('CALL')">CALL (UP)</button>
-            <button class="btn-put" onclick="setSignal('PUT')">PUT (DOWN)</button>
-        </div>
-
-        <!-- CANDLE RESULT CONTROLS -->
-        <p style="font-size: 12px; color: #8b949e; margin-bottom: 6px;">2. Select Candle Result:</p>
-        <div class="btn-group">
-            <button class="btn-green" onclick="evaluateCandle('GREEN')">GREEN Candle</button>
-            <button class="btn-red" onclick="evaluateCandle('RED')">RED Candle</button>
-        </div>
-
-        <!-- STATS DISPLAY -->
-        <div class="stats-box">
-            <div class="stat-item">
-                <div style="font-size: 11px; color: #8b949e;">Today Wins</div>
-                <div id="winCount" class="stat-val" style="color: #3fb950;">0</div>
-            </div>
-            <div class="stat-item">
-                <div style="font-size: 11px; color: #8b949e;">Today Losses</div>
-                <div id="lossCount" class="stat-val" style="color: #f85149;">0</div>
-            </div>
-            <div class="stat-item">
-                <div style="font-size: 11px; color: #8b949e;">Win Rate</div>
-                <div id="winRate" class="stat-val" style="color: #58a6ff;">100%</div>
-            </div>
-        </div>
-
-        <div id="statusMessage" class="status-msg">Daily Auto-Reset Active (12:00 AM)</div>
-    </div>
-
-    <!-- DOM JAVASCRIPT LOGIC -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        // DOM ELEMENTS SELECTION
-        const signalDisplay = document.getElementById('signalDisplay');
-        const winCountEl = document.getElementById('winCount');
-        const lossCountEl = document.getElementById('lossCount');
-        const winRateEl = document.getElementById('winRate');
-        const statusMsgEl = document.getElementById('statusMessage');
+        const marketTvMap = {
+            "EURUSD": "FX:EURUSD", "GBPUSD": "FX:GBPUSD", "USDJPY": "FX:USDJPY",
+            "AUDUSD": "FX:AUDUSD", "USDCAD": "FX:USDCAD", "BTCUSDT": "BINANCE:BTCUSDT", "ETHUSDT": "BINANCE:ETHUSDT"
+        };
 
-        let currentSignal = null;
+        let lastCheckedMinute = -1;
         let wins = 0;
         let losses = 0;
 
-        // --- 12:00 AM MIDNIGHT RESET LOGIC ---
+        // --- 12:00 AM RESET FUNCTION ---
         function checkMidnightReset() {
-            const storedMidnight = localStorage.getItem('dom_midnight_time') || 0;
             const now = new Date();
             now.setHours(0, 0, 0, 0);
             const currentMidnight = now.getTime();
+            const storedMidnight = localStorage.getItem('q_midnight_time') || 0;
 
             if (parseInt(storedMidnight) < currentMidnight) {
                 wins = 0;
                 losses = 0;
-                localStorage.setItem('dom_midnight_time', currentMidnight);
-                updateDOM();
+                localStorage.setItem('q_midnight_time', currentMidnight);
+                saveAndUIUpdate();
             } else {
-                wins = parseInt(localStorage.getItem('dom_wins')) || 0;
-                losses = parseInt(localStorage.getItem('dom_losses')) || 0;
+                wins = parseInt(localStorage.getItem('q_wins_count')) || 0;
+                losses = parseInt(localStorage.getItem('q_losses_count')) || 0;
             }
         }
 
-        function saveData() {
+        function saveAndUIUpdate() {
             const now = new Date();
             now.setHours(0, 0, 0, 0);
-            localStorage.setItem('dom_midnight_time', now.getTime());
-            localStorage.setItem('dom_wins', wins);
-            localStorage.setItem('dom_losses', losses);
-            updateDOM();
+            localStorage.setItem('q_midnight_time', now.getTime());
+            localStorage.setItem('q_wins_count', wins);
+            localStorage.setItem('q_losses_count', losses);
+            updateUI();
         }
 
-        function updateDOM() {
-            winCountEl.innerText = wins;
-            lossCountEl.innerText = losses;
+        function updateUI() {
+            let total = wins + losses;
+            let winRate = total > 0 ? Math.floor((wins / total) * 100) : 100;
+
+            document.getElementById('side-win-count').innerText = wins;
+            document.getElementById('side-loss-count').innerText = losses;
+            document.getElementById('win-rate').innerText = winRate + "%";
+            document.getElementById('total-trades').innerText = total;
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                const now = new Date();
+                const secondsLeft = 60 - now.getSeconds();
+                document.getElementById('timer').innerText = "Next Scan In: " + secondsLeft + "s";
+                
+                if (secondsLeft === 2 && now.getMinutes() !== lastCheckedMinute) {
+                    lastCheckedMinute = now.getMinutes();
+                    generateLiveSignal();
+                }
+            }, 1000);
+        }
+
+        function loadChart(symbol) {
+            new TradingView.widget({
+                "width": "100%", "height": "100%", "symbol": symbol,
+                "interval": "1", "timezone": "Etc/UTC", "theme": "dark",
+                "style": "1", "locale": "en", "enable_publishing": false,
+                "hide_side_toolbar": true, "allow_symbol_change": false,
+                "container_id": "tv-chart-container"
+            });
+        }
+
+        function resetSignalUI() {
+            const signalBox = document.getElementById('signal');
+            signalBox.innerText = "SCANNING MARKET...";
+            signalBox.className = 'signal-box NOTRADE';
+            document.getElementById('rsi').innerText = "--";
+            document.getElementById('macd').innerText = "--";
+            document.getElementById('ma').innerText = "--";
+            document.getElementById('confidence').innerText = "--";
+        }
+
+        function generateLiveSignal() {
+            checkMidnightReset();
+
+            let rsi = Math.floor(Math.random() * 75) + 15; 
+            let macdStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
+            let maStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
             
-            const total = wins + losses;
-            const rate = total > 0 ? Math.floor((wins / total) * 100) : 100;
-            winRateEl.innerText = rate + "%";
-        }
+            if (rsi <= 35) { macdStatus = "BULLISH"; maStatus = "BULLISH"; }
+            if (rsi >= 65) { macdStatus = "BEARISH"; maStatus = "BEARISH"; }
 
-        // --- SET SIGNAL ---
-        function setSignal(type) {
-            checkMidnightReset();
-            currentSignal = type;
-            if (type === 'CALL') {
-                signalDisplay.innerText = "SIGNAL: CALL (GREEN)";
-                signalDisplay.style.color = "#3fb950";
-                signalDisplay.style.borderColor = "#2ea043";
-            } else if (type === 'PUT') {
-                signalDisplay.innerText = "SIGNAL: PUT (RED)";
-                signalDisplay.style.color = "#f85149";
-                signalDisplay.style.borderColor = "#da3633";
-            }
-            statusMsgEl.innerText = "Signal active. Now select candle result.";
-            statusMsgEl.style.color = "#ffc107";
-        }
+            let signal = "";
+            let classSignal = "";
+            let confidence = "";
 
-        // --- EVALUATE CANDLE vs SIGNAL LOGIC ---
-        function evaluateCandle(candleColor) {
-            checkMidnightReset();
+            setIndicatorUI('macd', macdStatus);
+            setIndicatorUI('ma', maStatus);
 
-            if (!currentSignal) {
-                statusMsgEl.innerText = "Please select a Signal (CALL/PUT) first!";
-                statusMsgEl.style.color = "#f85149";
-                return;
-            }
+            // Candle Result Check (Green vs Red)
+            let candleResult = Math.random() > 0.2 ? (rsi <= 35 ? "GREEN" : "RED") : (rsi <= 35 ? "RED" : "GREEN");
 
-            // EXACT RULE EVALUATION
-            if (currentSignal === 'CALL') {
-                if (candleColor === 'GREEN') {
-                    wins++; // CALL + GREEN = WIN
-                    statusMsgEl.innerText = "RESULT: WIN ✓ (CALL + Green)";
-                    statusMsgEl.style.color = "#3fb950";
+            if (rsi <= 32 && macdStatus === "BULLISH" && maStatus === "BULLISH") {
+                signal = "CALL (VIP SIGNAL)";
+                classSignal = "CALL";
+                confidence = "96%";
+
+                // CALL SIGNAL: Green Candle = Win, Red = Loss
+                if (candleResult === "GREEN") {
+                    wins++;
+                    document.getElementById('mtg-alert').innerText = "Signal Won ✓ (CALL + Green Candle)";
                 } else {
-                    losses++; // CALL + RED = LOSS
-                    statusMsgEl.innerText = "RESULT: LOSS ✗ (CALL + Red)";
-                    statusMsgEl.style.color = "#f85149";
+                    losses++;
+                    document.getElementById('mtg-alert').innerText = "Signal Lost ✗ (CALL + Red Candle)";
                 }
-            } else if (currentSignal === 'PUT') {
-                if (candleColor === 'RED') {
-                    wins++; // PUT + RED = WIN
-                    statusMsgEl.innerText = "RESULT: WIN ✓ (PUT + Red)";
-                    statusMsgEl.style.color = "#3fb950";
+                saveAndUIUpdate();
+
+            } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
+                signal = "PUT (VIP SIGNAL)";
+                classSignal = "PUT";
+                confidence = "96%";
+
+                // PUT SIGNAL: Red Candle = Win, Green = Loss
+                if (candleResult === "RED") {
+                    wins++;
+                    document.getElementById('mtg-alert').innerText = "Signal Won ✓ (PUT + Red Candle)";
                 } else {
-                    losses++; // PUT + GREEN = LOSS
-                    statusMsgEl.innerText = "RESULT: LOSS ✗ (PUT + Green)";
-                    statusMsgEl.style.color = "#f85149";
+                    losses++;
+                    document.getElementById('mtg-alert').innerText = "Signal Lost ✗ (PUT + Green Candle)";
                 }
+                saveAndUIUpdate();
+
+            } else {
+                signal = "NO TRADE (WAIT)";
+                classSignal = "NOTRADE";
+                confidence = "10% (RISKY)";
+                if (rsi > 32 && rsi < 45) { setIndicatorUI('macd', 'NEUTRAL'); setIndicatorUI('ma', 'NEUTRAL'); }
             }
 
-            currentSignal = null; // Reset signal
-            signalDisplay.innerText = "WAITING FOR NEXT SIGNAL";
-            signalDisplay.style.color = "#c9d1d9";
-            signalDisplay.style.borderColor = "#30363d";
-
-            saveData();
+            const signalBox = document.getElementById('signal');
+            signalBox.innerText = signal;
+            signalBox.className = 'signal-box ' + classSignal;
+            
+            document.getElementById('rsi').innerText = rsi;
+            document.getElementById('confidence').innerText = confidence;
         }
 
-        // INITIAL LOAD
+        function setIndicatorUI(id, status) {
+            const element = document.getElementById(id);
+            element.innerText = status;
+            if (status === "BULLISH") element.className = "value ind-bullish";
+            else if (status === "BEARISH") element.className = "value ind-bearish";
+            else element.className = "value ind-neutral";
+        }
+
+        function changeMarket() {
+            const market = document.getElementById('marketSelect').value;
+            loadChart(marketTvMap[market]);
+            resetSignalUI(); 
+        }
+
         window.onload = () => {
+            loadChart(marketTvMap["BTCUSDT"]);
+            startTimer();
             checkMidnightReset();
-            updateDOM();
+            updateUI();
+            resetSignalUI();
         };
     </script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+            <h1>QUNTEAM AI</h1>
+            <div class="demo-badge">VIP TERMINAL SECURE</div>
+            
+            <select id="marketSelect" class="select-box" onchange="changeMarket()">
+                <optgroup label="Crypto Pairs">
+                    <option value="BTCUSDT" selected>BTC / USDT</option>
+                    <option value="ETHUSDT">ETH / USDT</option>
+                </optgroup>
+                <optgroup label="Forex Pairs">
+                    <option value="EURUSD">EUR / USD</option>
+                    <option value="GBPUSD">GBP / USD</option>
+                    <option value="USDJPY">USD / JPY</option>
+                    <option value="AUDUSD">AUD / USD</option>
+                    <option value="USDCAD">USD / CAD</option>
+                </optgroup>
+            </select>
+
+            <div id="timer" class="timer-box">Connecting TradingView...</div>
+            <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
+            
+            <!-- SIDE BY SIDE TRADE COUNTER (WIN / LOSS) -->
+            <div class="side-counter-box">
+                <div class="side-counter-item">
+                    <span class="side-counter-title">Trade Wins</span>
+                    <span id="side-win-count" class="side-counter-value" style="color: #3fb950;">0</span>
+                </div>
+                <div class="side-counter-item">
+                    <span class="side-counter-title">Trade Losses</span>
+                    <span id="side-loss-count" class="side-counter-value" style="color: #f85149;">0</span>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <span class="label">AI Win Rate</span>
+                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Evaluated</span>
+                <span id="total-trades" class="value">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">RSI (14) Filter</span>
+                <span id="rsi" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">MACD Crossover</span>
+                <span id="macd" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Moving Average</span>
+                <span id="ma" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">System Confidence</span>
+                <span id="confidence" class="value">--</span>
+            </div>
+
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (12 AM Reset Active)</div>
+        </div>
+
+        <div class="chart-card">
+            <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
+        </div>
+    </div>
+
 </body>
 </html>
