@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - APP DASHBOARD</title>
+    <title>QUNTEAM AI - VIP APP DASHBOARD</title>
     <style>
         body {
             background-color: #0d1117;
@@ -140,7 +140,7 @@
             margin-top: 2px;
         }
 
-        /* LOCK SCREEN STYLES */
+        /* 30-MINUTE LOCK SCREEN OVERLAY */
         #demoLockOverlay {
             display: none;
             position: fixed;
@@ -202,36 +202,38 @@
         let wins = 0;
         let losses = 0;
 
-        // --- 30 MINUTE DEMO SYSTEM LOGIC ---
-        (function initDemoTimer() {
-            const DEMO_LIMIT_MS = 30 * 60 * 1000; // 30 Minutes
-            let startTime = localStorage.getItem('q_demo_start');
+        // --- 30-MINUTE DEMO TIMER SYSTEM ---
+        (function init30MinDemo() {
+            const THIRTY_MIN_MS = 30 * 60 * 1000; // 30 Minutes
+            let demoStart = localStorage.getItem('q_demo_start');
 
-            if (!startTime) {
-                startTime = Date.now();
-                localStorage.setItem('q_demo_start', startTime);
+            // Set start time on first visit
+            if (!demoStart) {
+                demoStart = Date.now();
+                localStorage.setItem('q_demo_start', demoStart);
             }
 
-            function updateDemoClock() {
-                const elapsed = Date.now() - parseInt(startTime, 10);
-                const remaining = DEMO_LIMIT_MS - elapsed;
+            function checkDemoTimer() {
+                const elapsed = Date.now() - parseInt(demoStart, 10);
+                const remaining = THIRTY_MIN_MS - elapsed;
 
                 if (remaining <= 0) {
+                    // Lock App after 30 Minutes
                     document.getElementById('demoLockOverlay').style.display = 'flex';
                     document.getElementById('demoTimerBanner').style.display = 'none';
                     document.body.style.overflow = 'hidden';
                 } else {
-                    const minutes = Math.floor(remaining / 60000);
-                    const seconds = Math.floor((remaining % 60000) / 1000);
-                    document.getElementById('demoClock').innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    const mins = Math.floor(remaining / 60000);
+                    const secs = Math.floor((remaining % 60000) / 1000);
+                    document.getElementById('demoClock').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
                 }
             }
 
-            setInterval(updateDemoClock, 1000);
-            window.addEventListener('DOMContentLoaded', updateDemoClock);
+            setInterval(checkDemoTimer, 1000);
+            window.addEventListener('DOMContentLoaded', checkDemoTimer);
         })();
 
-        // --- 12:00 AM RESET FUNCTION ---
+        // --- 12:00 AM DAILY RESET SYSTEM ---
         function checkMidnightReset() {
             const now = new Date();
             now.setHours(0, 0, 0, 0);
@@ -388,12 +390,12 @@
 </head>
 <body>
 
-    <!-- 30 MINUTE DEMO LOCK OVERLAY -->
+    <!-- 30-MINUTE DEMO EXPIRED OVERLAY -->
     <div id="demoLockOverlay">
         <div class="lock-card">
             <h2 style="color: #f85149; margin-bottom: 10px; font-size: 22px;">⚠️ DEMO EXPIRED</h2>
             <p style="color: #8b949e; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-                Aapka 30-Minute Free Demo trial khatam ho chuka hai. VIP Subscription lene ke liye Telegram par contact karein.
+                Aapka 30-Minute Free Demo Trial khatam ho chuka hai. Full access ke liye Telegram par contact karein.
             </p>
             <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px;">
                 <span style="font-size: 13px; color: #8b949e;">Official Telegram:</span><br>
@@ -405,7 +407,7 @@
         </div>
     </div>
 
-    <!-- DEMO TIMER BOTTOM BANNER -->
+    <!-- REMAINING DEMO TIME BANNER -->
     <div id="demoTimerBanner">
         Demo Left: <span id="demoClock" style="color: #3fb950; font-weight: bold;">30:00</span>
     </div>
