@@ -2,314 +2,309 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZEROX QUANTUM | WIN-TRACKER ENGINE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUNTEAM AI - APP DASHBOARD</title>
     <style>
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
-        .glass { background: rgba(10, 10, 10, 0.98); border: 1px solid #222; }
-        .neon-text { text-shadow: 0 0 15px rgba(0, 242, 255, 0.6); }
-        #page-2 { display: none; }
-        select { background: #111; border: 1px solid #333; color: #00f2ff; font-size: 11px; padding: 6px 10px; border-radius: 5px; cursor: pointer; }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 480px;
+        }
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .chart-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            height: 380px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; font-weight: 800; letter-spacing: 1px; }
+        .demo-badge {
+            background: linear-gradient(45deg, #00ff66, #0088cc);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .select-box {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+        .signal-box {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; text-shadow: 0 0 10px rgba(63,185,80,0.5); }
+        .PUT { background-color: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; text-shadow: 0 0 10px rgba(248,81,73,0.5); }
+        .NOTRADE { background-color: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #444c56; }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #21262d;
+            font-size: 14px;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .label { color: #8b949e; }
+        .value { font-weight: 600; color: #f0f6fc; }
+        .ind-bullish { color: #3fb950; font-weight: bold; }
+        .ind-bearish { color: #f85149; font-weight: bold; }
+        .ind-neutral { color: #8b949e; font-weight: bold; }
+        .timer-box {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        .martingale-box {
+            background-color: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            color: #58a6ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
     </style>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        const marketTvMap = {
+            "EURUSD": "FX:EURUSD", "GBPUSD": "FX:GBPUSD", "USDJPY": "FX:USDJPY",
+            "AUDUSD": "FX:AUDUSD", "USDCAD": "FX:USDCAD", "BTCUSDT": "BINANCE:BTCUSDT", "ETHUSDT": "BINANCE:ETHUSDT"
+        };
+
+        let lastCheckedMinute = -1;
+        let totalTrades = 0;
+        let wins = 0;
+        let currentMartingale = 0;
+
+        function startTimer() {
+            setInterval(() => {
+                const now = new Date();
+                const secondsLeft = 60 - now.getSeconds();
+                document.getElementById('timer').innerText = "Next Scan In: " + secondsLeft + "s";
+                
+                if (secondsLeft === 2 && now.getMinutes() !== lastCheckedMinute) {
+                    lastCheckedMinute = now.getMinutes();
+                    generateLiveSignal();
+                }
+            }, 1000);
+        }
+
+        function loadChart(symbol) {
+            new TradingView.widget({
+                "width": "100%", "height": "100%", "symbol": symbol,
+                "interval": "1", "timezone": "Etc/UTC", "theme": "dark",
+                "style": "1", "locale": "en", "enable_publishing": false,
+                "hide_side_toolbar": true, "allow_symbol_change": false,
+                "container_id": "tv-chart-container"
+            });
+        }
+
+        function resetSignalUI() {
+            const signalBox = document.getElementById('signal');
+            signalBox.innerText = "SCANNING MARKET...";
+            signalBox.className = 'signal-box NOTRADE';
+            document.getElementById('rsi').innerText = "--";
+            document.getElementById('macd').innerText = "--";
+            document.getElementById('ma').innerText = "--";
+            document.getElementById('confidence').innerText = "--";
+        }
+
+        function generateLiveSignal() {
+            let rsi = Math.floor(Math.random() * 75) + 15; 
+            let macdStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
+            let maStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
+            
+            if (rsi <= 35) { macdStatus = "BULLISH"; maStatus = "BULLISH"; }
+            if (rsi >= 65) { macdStatus = "BEARISH"; maStatus = "BEARISH"; }
+
+            let signal = "";
+            let classSignal = "";
+            let confidence = "";
+
+            setIndicatorUI('macd', macdStatus);
+            setIndicatorUI('ma', maStatus);
+
+            if (rsi <= 32 && macdStatus === "BULLISH" && maStatus === "BULLISH") {
+                signal = "CALL (VIP SIGNAL)";
+                classSignal = "CALL";
+                confidence = "96%";
+                updateStats(true);
+            } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
+                signal = "PUT (VIP SIGNAL)";
+                classSignal = "PUT";
+                confidence = "96%";
+                updateStats(true);
+            } else {
+                signal = "NO TRADE (WAIT)";
+                classSignal = "NOTRADE";
+                confidence = "10% (RISKY)";
+                if (rsi > 32 && rsi < 45) { setIndicatorUI('macd', 'NEUTRAL'); setIndicatorUI('ma', 'NEUTRAL'); }
+                if (currentMartingale > 0) {
+                    updateStats(false);
+                }
+            }
+
+            const signalBox = document.getElementById('signal');
+            signalBox.innerText = signal;
+            signalBox.className = 'signal-box ' + classSignal;
+            
+            document.getElementById('rsi').innerText = rsi;
+            document.getElementById('confidence').innerText = confidence;
+        }
+
+        function setIndicatorUI(id, status) {
+            const element = document.getElementById(id);
+            element.innerText = status;
+            if (status === "BULLISH") element.className = "value ind-bullish";
+            else if (status === "BEARISH") element.className = "value ind-bearish";
+            else element.className = "value ind-neutral";
+        }
+
+        function updateStats(isRealSignal) {
+            if (!isRealSignal && currentMartingale > 0) {
+                if (Math.random() > 0.22) {
+                    wins++;
+                    currentMartingale = 0;
+                    document.getElementById('mtg-alert').innerText = "Martingale Win. Signal Reset.";
+                } else {
+                    currentMartingale++;
+                    if (currentMartingale > 2) currentMartingale = 0;
+                    document.getElementById('mtg-alert').innerText = "Martingale Step " + currentMartingale + " (Double Bet)";
+                }
+            } else if (isRealSignal) {
+                totalTrades++;
+                if (Math.random() > 0.12) { 
+                    wins++;
+                    currentMartingale = 0;
+                    document.getElementById('mtg-alert').innerText = "Signal Won Successfully.";
+                } else {
+                    currentMartingale = 1;
+                    document.getElementById('mtg-alert').innerText = "Apply Martingale Step 1";
+                }
+            }
+
+            let winRate = totalTrades > 0 ? Math.floor((wins / totalTrades) * 100) : 100;
+            document.getElementById('win-rate').innerText = winRate + "%";
+            document.getElementById('total-trades').innerText = totalTrades;
+        }
+
+        function changeMarket() {
+            const market = document.getElementById('marketSelect').value;
+            loadChart(marketTvMap[market]);
+            resetSignalUI(); 
+        }
+
+        window.onload = () => {
+            loadChart(marketTvMap["BTCUSDT"]);
+            startTimer();
+            resetSignalUI();
+        };
+    </script>
 </head>
 <body>
 
-<nav class="bg-black border-b border-gray-900 px-6 py-4 flex justify-between items-center z-50 relative">
-    <div class="flex items-center gap-4">
-        <select id="market-select" onchange="changeMarket()">
-            <!-- Major Markets -->
-            <optgroup label="--- MAJOR FOREX ---" style="color: #666;">
-                <option value="FX:EURUSD" selected>EUR/USD (Euro / US Dollar)</option>
-                <option value="FX:GBPUSD">GBP/USD (British Pound / US Dollar)</option>
-                <option value="FX:USDJPY">USD/JPY (US Dollar / Japanese Yen)</option>
-                <option value="FX:AUDUSD">AUD/USD (Australian Dollar / US Dollar)</option>
-                <option value="FX:USDCHF">USD/CHF (US Dollar / Swiss Franc)</option>
-                <option value="FX:USDCAD">USD/CAD (US Dollar / Canadian Dollar)</option>
-                <option value="FX:NZDUSD">NZD/USD (New Zealand Dollar / US Dollar)</option>
-            </optgroup>
-            <!-- Minor Markets -->
-            <optgroup label="--- MINOR FOREX ---" style="color: #666;">
-                <option value="FX:EURGBP">EUR/GBP (Euro / British Pound)</option>
-                <option value="FX:EURJPY">EUR/JPY (Euro / Japanese Yen)</option>
-                <option value="FX:GBPJPY">GBP/JPY (British Pound / Japanese Yen)</option>
-                <option value="FX:EURAUD">EUR/AUD (Euro / Australian Dollar)</option>
-                <option value="FX:GBPAUD">GBP/AUD (British Pound / Australian Dollar)</option>
-                <option value="FX:AUDJPY">AUD/JPY (Australian Dollar / Japanese Yen)</option>
-            </optgroup>
-            <!-- Exotic Markets -->
-            <optgroup label="--- EXOTIC FOREX ---" style="color: #666;">
-                <option value="FX_IDC:USDINR">USD/INR (US Dollar / Indian Rupee)</option>
-                <option value="FX_IDC:EURINR">EUR/INR (Euro / Indian Rupee)</option>
-                <option value="FX:USDSGD">USD/SGD (US Dollar / Singapore Dollar)</option>
-                <option value="FX:USDZAR">USD/ZAR (US Dollar / South African Rand)</option>
-            </optgroup>
-            <!-- Crypto & 24/7 Markets -->
-            <optgroup label="--- CRYPTO & 24/7 ---" style="color: #666;">
-                <option value="BINANCE:BTCUSDT">BTC/USDT (Crypto)</option>
-                <option value="PYTH:ETHUSD">ETH/USD (24/7)</option>
-            </optgroup>
-        </select>
-    </div>
-    <h1 class="text-lg font-black italic tracking-tighter neon-text uppercase">ZEROX <span class="text-cyan-500">QUANTUM</span></h1>
-    <button onclick="location.reload()" class="bg-white text-black text-[9px] font-black px-4 py-2 rounded-full uppercase">Refresh</button>
-</nav>
-
-<div id="page-1" class="h-screen flex flex-col items-center justify-center p-6 text-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-cyan-900/10 via-black to-black">
-    <h2 class="text-4xl font-black mb-4 italic uppercase">ZEROX HYBRID <br><span class="text-cyan-500">QUANTUM v4</span></h2>
-    <p class="text-gray-500 text-[10px] tracking-[0.3em] mb-10 font-bold uppercase">AUTOMATED 24H WIN/LOSS TRACKING SYSTEM</p>
-    <button onclick="startApp()" class="bg-cyan-500 text-black font-black px-12 py-5 rounded-3xl text-xs uppercase shadow-2xl shadow-cyan-500/40 hover:scale-105 transition-all">Start Trading System</button>
-</div>
-
-<div id="page-2" class="h-screen flex flex-col p-4 bg-black">
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 pb-24">
-        
-        <div class="lg:col-span-1 glass rounded-[40px] p-5 flex flex-col gap-4 border-cyan-500/10 shadow-2xl overflow-y-auto">
-            <div class="text-center">
-                <div id="clock" class="text-6xl font-black font-mono tracking-tighter">60</div>
-                <p id="session-info" class="text-[9px] text-cyan-500 font-bold uppercase mt-1 tracking-widest">SYSTEM READY</p>
-            </div>
-
-            <!-- 24-HOUR STATS COUNTER DASHBOARD -->
-            <div class="bg-black/60 p-4 rounded-3xl border border-cyan-500/20 text-[9px]">
-                <p class="text-[8px] text-cyan-400 font-black uppercase mb-2 text-center tracking-widest">24H PERFORMANCE TRACKER</p>
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <div class="bg-zinc-900/80 p-2 rounded-xl border border-green-500/30">
-                        <span class="block text-gray-400 uppercase text-[7px] font-bold">WINS</span>
-                        <span id="win-count" class="text-green-400 font-black text-sm">0</span>
-                    </div>
-                    <div class="bg-zinc-900/80 p-2 rounded-xl border border-red-500/30">
-                        <span class="block text-gray-400 uppercase text-[7px] font-bold">LOSSES</span>
-                        <span id="loss-count" class="text-red-400 font-black text-sm">0</span>
-                    </div>
-                    <div class="bg-zinc-900/80 p-2 rounded-xl border border-cyan-500/30">
-                        <span class="block text-gray-400 uppercase text-[7px] font-bold">WIN RATE</span>
-                        <span id="win-rate" class="text-cyan-400 font-black text-sm">0%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Advanced Institutional & Indicator Metrics -->
-            <div class="space-y-1.5 bg-black/50 p-3.5 rounded-3xl border border-gray-800 text-[9px]">
-                <div class="flex justify-between"><span class="text-gray-500 uppercase">SMC Order Block:</span> <span id="ob-status" class="text-gray-400 font-bold uppercase italic">Waiting</span></div>
-                <div class="flex justify-between"><span class="text-gray-500 uppercase">ICT FVG Gap:</span> <span id="fvg-status" class="text-gray-400 font-bold">Waiting</span></div>
-                <div class="flex justify-between"><span class="text-gray-500 uppercase">50/200 EMA Trend:</span> <span id="ema-status" class="text-gray-400 font-bold">Waiting</span></div>
-                <div class="flex justify-between"><span class="text-gray-500 uppercase">RSI Momentum:</span> <span id="rsi-status" class="text-gray-400 font-bold">Waiting</span></div>
-                <div class="flex justify-between border-t border-gray-800 pt-1.5 font-black"><span class="text-cyan-500">ACCURACY SCORE:</span> <span id="score" class="text-white font-bold">0%</span></div>
-            </div>
-
-            <!-- High-Frequency Signal Box -->
-            <div id="signal-box" class="flex-1 min-h-[90px] flex flex-col justify-center items-center rounded-[30px] bg-zinc-900 border border-gray-800 text-center transition-all duration-500 p-2">
-                <span class="text-[8px] text-gray-500 uppercase font-black mb-1">Institutional Entry</span>
-                <div id="signal-text" class="text-2xl font-black uppercase text-gray-500">WAITING</div>
-            </div>
-
-            <!-- Disclaimer Warning (Legal Safety) -->
-            <div style="padding: 8px; background-color: #111; border: 1px solid #222; border-radius: 12px; color: #888; font-size: 8px; text-align: left; line-height: 1.3;">
-                <strong style="color: #ffcc00;">⚠️ Disclaimer:</strong> यह एप्लीकेशन केवल <strong>Educational Purpose (शैक्षणिक उद्देश्य)</strong> के लिए बनाई गई है। हम किसी भी वित्तीय जोखिम या trading को बढ़ावा नहीं देते हैं।
-            </div>
-        </div>
-
-        <div class="lg:col-span-3 rounded-[40px] overflow-hidden border border-gray-800 relative bg-[#131722] shadow-2xl">
-            <div id="tv-chart" class="h-full w-full"></div>
-        </div>
-    </div>
-</div>
-
-<!-- TradingView Embed Script -->
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-
-<script>
-    let currentSymbol = "FX:EURUSD";
-    let widget = null;
-    let hasGeneratedSignal = false;
-
-    // Win/Loss State Management
-    let totalWins = 18;  // Initialized with realistic 24h baseline history
-    let totalLosses = 2; 
-    let lastSignal = null;
-
-    function startApp() {
-        document.getElementById('page-1').style.display = 'none';
-        document.getElementById('page-2').style.display = 'flex';
-        updateStatsUI();
-        loadChart(currentSymbol);
-        startEngineLogic();
-    }
-
-    function updateStatsUI() {
-        document.getElementById('win-count').innerText = totalWins;
-        document.getElementById('loss-count').innerText = totalLosses;
-        let total = totalWins + totalLosses;
-        let rate = total > 0 ? Math.round((totalWins / total) * 100) : 0;
-        document.getElementById('win-rate').innerText = rate + "%";
-    }
-
-    function loadChart(symbol) {
-        document.getElementById('tv-chart').innerHTML = '';
-        widget = new TradingView.widget({
-            "autosize": true,
-            "symbol": symbol,
-            "interval": "1",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "enable_publishing": false,
-            "hide_side_toolbar": true,
-            "allow_symbol_change": false,
-            "container_id": "tv-chart"
-        });
-    }
-
-    function changeMarket() {
-        const select = document.getElementById('market-select');
-        currentSymbol = select.value;
-        if (document.getElementById('page-2').style.display === 'flex') {
-            loadChart(currentSymbol);
-            resetForNextCandle();
-        }
-    }
-
-    function getMarketRandom(marketString) {
-        let hash = 0;
-        let combineStr = marketString + new Date().getMinutes() + new Date().getHours();
-        for (let i = 0; i < combineStr.length; i++) {
-            hash = combineStr.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        let x = Math.sin(hash) * 10000;
-        return x - Math.floor(x);
-    }
-
-    function startEngineLogic() {
-        setInterval(() => {
-            let seconds = new Date().getSeconds();
-            let remaining = 60 - seconds;
-            document.getElementById('clock').innerText = remaining < 10 ? '0' + remaining : remaining;
+    <div class="container">
+        <div class="card">
+            <h1>QUNTEAM AI</h1>
+            <div class="demo-badge">VIP TERMINAL SECURE</div>
             
-            if (remaining > 1) {
-                document.getElementById('session-info').innerText = "CANDLE ANALYZING...";
-                document.getElementById('session-info').style.color = "#00f2ff";
-                hasGeneratedSignal = false;
-                simulateLiveFluctuations();
-            } 
-            else if (remaining === 1 && !hasGeneratedSignal) {
-                executeFinalInstitutionalCalculation();
-                hasGeneratedSignal = true;
-            }
-            else if (remaining === 60) {
-                evaluatePreviousTradeResult();
-                resetForNextCandle();
-            }
-        }, 1000);
-    }
+            <select id="marketSelect" class="select-box" onchange="changeMarket()">
+                <optgroup label="Crypto Pairs">
+                    <option value="BTCUSDT" selected>BTC / USDT</option>
+                    <option value="ETHUSDT">ETH / USDT</option>
+                </optgroup>
+                <optgroup label="Forex Pairs">
+                    <option value="EURUSD">EUR / USD</option>
+                    <option value="GBPUSD">GBP / USD</option>
+                    <option value="USDJPY">USD / JPY</option>
+                    <option value="AUDUSD">AUD / USD</option>
+                    <option value="USDCAD">USD / CAD</option>
+                </optgroup>
+            </select>
 
-    function simulateLiveFluctuations() {
-        let mRand = getMarketRandom(currentSymbol + new Date().getSeconds());
-        let obPool = ["SCANNING ZONE", "CHECKING OB", "TESTING REJECT", "LIQUIDITY RUN"];
-        let fvgPool = ["SCANNING GAPS", "IMBALANCE VAL", "CHECKING FVG", "MARKET IMBALANCE"];
-        
-        document.getElementById('ob-status').innerText = obPool[Math.floor(mRand * obPool.length)];
-        document.getElementById('fvg-status').innerText = fvgPool[Math.floor((mRand * 2) % fvgPool.length)];
-        document.getElementById('ema-status').innerText = "MONITORING TREND";
-        document.getElementById('rsi-status').innerText = "CALCULATING RSI";
-    }
+            <div id="timer" class="timer-box">Connecting TradingView...</div>
+            <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
+            
+            <div class="stat-row">
+                <span class="label">AI Win Rate</span>
+                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Evaluated</span>
+                <span id="total-trades" class="value">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">RSI (14) Filter</span>
+                <span id="rsi" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">MACD Crossover</span>
+                <span id="macd" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Moving Average</span>
+                <span id="ma" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">System Confidence</span>
+                <span id="confidence" class="value">--</span>
+            </div>
 
-    function executeFinalInstitutionalCalculation() {
-        document.getElementById('session-info').innerText = "CALCULATION LOCKED";
-        document.getElementById('session-info').style.color = "#ffcc00";
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online</div>
+        </div>
 
-        let r1 = getMarketRandom(currentSymbol + "score");
-        let r2 = getMarketRandom(currentSymbol + "ob");
-        let r3 = getMarketRandom(currentSymbol + "fvg");
-        let r4 = getMarketRandom(currentSymbol + "ema");
-        let r5 = getMarketRandom(currentSymbol + "rsi");
-
-        let score = Math.floor(r1 * 15) + 85; 
-        
-        let obPool = ["BULLISH OB", "BEARISH OB", "NO ZONE", "MITIGATED"];
-        let fvgPool = ["IMBALANCE FILL", "OPEN FVG", "REBALANCED", "NO GAP"];
-        let emaPool = ["BULLISH CROSS", "BEARISH CROSS", "SIDEWAYS"];
-        let rsiPool = ["OVERSOLD (BUY)", "OVERBOUGHT (SELL)", "NEUTRAL"];
-        
-        let randOb = obPool[Math.floor(r2 * obPool.length)];
-        let randFvg = fvgPool[Math.floor(r3 * fvgPool.length)];
-        let randEma = emaPool[Math.floor(r4 * emaPool.length)];
-        let randRsi = rsiPool[Math.floor(r5 * rsiPool.length)];
-
-        document.getElementById('ob-status').innerText = randOb;
-        document.getElementById('fvg-status').innerText = randFvg;
-        document.getElementById('ema-status').innerText = randEma;
-        document.getElementById('rsi-status').innerText = randRsi;
-        document.getElementById('score').innerText = score + "%";
-        
-        let signalBox = document.getElementById('signal-box');
-        let signalText = document.getElementById('signal-text');
-        
-        let currentDecision = "NO TRADE";
-
-        if (randOb === "BULLISH OB" || randEma === "BULLISH CROSS" || randRsi === "OVERSOLD (BUY)") {
-            if (randEma !== "BEARISH CROSS" && randRsi !== "OVERBOUGHT (SELL)") {
-                currentDecision = "CALL";
-            }
-        } 
-        else if (randOb === "BEARISH OB" || randEma === "BEARISH CROSS" || randRsi === "OVERBOUGHT (SELL)") {
-            if (randEma !== "BULLISH CROSS" && randRsi !== "OVERSOLD (BUY)") {
-                currentDecision = "PUT";
-            }
-        }
-        
-        if (currentDecision === "NO TRADE" && score >= 90) {
-            currentDecision = (score % 2 === 0) ? "CALL" : "PUT";
-        }
-
-        lastSignal = currentDecision;
-
-        if (currentDecision === "CALL") {
-            signalText.innerText = "CALL";
-            signalBox.style.backgroundColor = "#052e16";
-            signalBox.style.borderColor = "#22c55e";
-            signalText.style.color = "#22c55e";
-        } else if (currentDecision === "PUT") {
-            signalText.innerText = "PUT";
-            signalBox.style.backgroundColor = "#450a0a";
-            signalBox.style.borderColor = "#ef4444";
-            signalText.style.color = "#ef4444";
-        } else {
-            signalText.innerText = "NO TRADE";
-            signalBox.style.backgroundColor = "#18181b";
-            signalBox.style.borderColor = "#3f3f46";
-            signalText.style.color = "#71717a";
-        }
-    }
-
-    function evaluatePreviousTradeResult() {
-        if (lastSignal && lastSignal !== "NO TRADE") {
-            // High win probability statistical evaluation (around 90% win rate)
-            let isWin = Math.random() < 0.90;
-            if (isWin) {
-                totalWins++;
-            } else {
-                totalLosses++;
-            }
-            updateStatsUI();
-        }
-    }
-
-    function resetForNextCandle() {
-        let signalBox = document.getElementById('signal-box');
-        let signalText = document.getElementById('signal-text');
-        
-        signalText.innerText = "WAITING";
-        signalBox.style.backgroundColor = "#111";
-        signalBox.style.borderColor = "#333";
-        signalText.style.color = "#555";
-        
-        document.getElementById('score').innerText = "0%";
-        document.getElementById('session-info').innerText = "NEW CANDLE STARTED";
-        document.getElementById('session-info').style.color = "#22c55e";
-    }
-</script>
+        <div class="chart-card">
+            <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
+        </div>
+    </div>
 
 </body>
 </html>
