@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUNTEAM AI - VIP APP DASHBOARD</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0d1117;
             color: #c9d1d9;
@@ -14,9 +15,7 @@
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
-            margin: 0;
             padding: 10px;
-            box-sizing: border-box;
         }
         .container {
             display: flex;
@@ -41,9 +40,8 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             height: 380px;
             width: 100%;
-            box-sizing: border-box;
         }
-        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; font-weight: 800; letter-spacing: 1px; }
+        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; font-weight: 800; letter-spacing: 1px; }
         .demo-badge {
             background: linear-gradient(45deg, #00ff66, #0088cc);
             color: #fff;
@@ -75,8 +73,8 @@
             letter-spacing: 1px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; text-shadow: 0 0 10px rgba(63,185,80,0.5); }
-        .PUT { background-color: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; text-shadow: 0 0 10px rgba(248,81,73,0.5); }
+        .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; }
+        .PUT { background-color: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; }
         .NOTRADE { background-color: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #444c56; }
         
         .stat-row {
@@ -154,7 +152,6 @@
             text-align: center;
             flex-direction: column;
             padding: 20px;
-            box-sizing: border-box;
         }
         .lock-card {
             background: #161b22;
@@ -192,6 +189,99 @@
         }
     </style>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+
+    <!-- 30-MINUTE DEMO EXPIRED OVERLAY -->
+    <div id="demoLockOverlay">
+        <div class="lock-card">
+            <h2 style="color: #f85149; margin-bottom: 10px; font-size: 22px;">⚠️ DEMO EXPIRED</h2>
+            <p style="color: #8b949e; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+                Aapka 30-Minute Free Demo Trial khatam ho chuka hai. Full access ke liye Telegram par contact karein.
+            </p>
+            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px;">
+                <span style="font-size: 13px; color: #8b949e;">Official Telegram:</span><br>
+                <span style="font-size: 16px; font-weight: bold; color: #58a6ff;">@ZeroxTHAKUR</span>
+            </div>
+            <a href="https://t.me/ZeroxTHAKUR" target="_blank" class="tg-btn">
+                Contact On Telegram
+            </a>
+        </div>
+    </div>
+
+    <!-- REMAINING DEMO TIME BANNER -->
+    <div id="demoTimerBanner">
+        Demo Left: <span id="demoClock" style="color: #3fb950; font-weight: bold;">30:00</span>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1>QUNTEAM AI</h1>
+            <div class="demo-badge">VIP TERMINAL SECURE</div>
+            
+            <select id="marketSelect" class="select-box" onchange="changeMarket()">
+                <optgroup label="Crypto Pairs">
+                    <option value="BTCUSDT" selected>BTC / USDT</option>
+                    <option value="ETHUSDT">ETH / USDT</option>
+                </optgroup>
+                <optgroup label="Forex Pairs">
+                    <option value="EURUSD">EUR / USD</option>
+                    <option value="GBPUSD">GBP / USD</option>
+                    <option value="USDJPY">USD / JPY</option>
+                    <option value="AUDUSD">AUD / USD</option>
+                    <option value="USDCAD">USD / CAD</option>
+                </optgroup>
+            </select>
+
+            <div id="timer" class="timer-box">Connecting TradingView...</div>
+            <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
+            
+            <!-- SIDE BY SIDE TRADE COUNTER (WIN / LOSS) -->
+            <div class="side-counter-box">
+                <div class="side-counter-item">
+                    <span class="side-counter-title">Trade Wins</span>
+                    <span id="side-win-count" class="side-counter-value" style="color: #3fb950;">0</span>
+                </div>
+                <div class="side-counter-item">
+                    <span class="side-counter-title">Trade Losses</span>
+                    <span id="side-loss-count" class="side-counter-value" style="color: #f85149;">0</span>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <span class="label">AI Win Rate</span>
+                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Evaluated</span>
+                <span id="total-trades" class="value">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">RSI (14) Filter</span>
+                <span id="rsi" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">MACD Crossover</span>
+                <span id="macd" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Moving Average</span>
+                <span id="ma" class="value">--</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">System Confidence</span>
+                <span id="confidence" class="value">--</span>
+            </div>
+
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (12 AM Reset Active)</div>
+        </div>
+
+        <div class="chart-card">
+            <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
     <script>
         const marketTvMap = {
             "EURUSD": "FX:EURUSD", "GBPUSD": "FX:GBPUSD", "USDJPY": "FX:USDJPY",
@@ -203,35 +293,32 @@
         let losses = 0;
 
         // --- 30-MINUTE DEMO TIMER SYSTEM ---
-        (function init30MinDemo() {
+        function checkDemoTimer() {
             const THIRTY_MIN_MS = 30 * 60 * 1000; // 30 Minutes
             let demoStart = localStorage.getItem('q_demo_start');
 
-            // Set start time on first visit
             if (!demoStart) {
                 demoStart = Date.now();
                 localStorage.setItem('q_demo_start', demoStart);
             }
 
-            function checkDemoTimer() {
-                const elapsed = Date.now() - parseInt(demoStart, 10);
-                const remaining = THIRTY_MIN_MS - elapsed;
+            const elapsed = Date.now() - parseInt(demoStart, 10);
+            const remaining = THIRTY_MIN_MS - elapsed;
 
-                if (remaining <= 0) {
-                    // Lock App after 30 Minutes
-                    document.getElementById('demoLockOverlay').style.display = 'flex';
-                    document.getElementById('demoTimerBanner').style.display = 'none';
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    const mins = Math.floor(remaining / 60000);
-                    const secs = Math.floor((remaining % 60000) / 1000);
-                    document.getElementById('demoClock').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                }
+            const overlay = document.getElementById('demoLockOverlay');
+            const banner = document.getElementById('demoTimerBanner');
+            const clock = document.getElementById('demoClock');
+
+            if (remaining <= 0) {
+                if (overlay) overlay.style.display = 'flex';
+                if (banner) banner.style.display = 'none';
+                document.body.style.overflow = 'hidden';
+            } else {
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                if (clock) clock.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }
-
-            setInterval(checkDemoTimer, 1000);
-            window.addEventListener('DOMContentLoaded', checkDemoTimer);
-        })();
+        }
 
         // --- 12:00 AM DAILY RESET SYSTEM ---
         function checkMidnightReset() {
@@ -379,105 +466,18 @@
             resetSignalUI(); 
         }
 
-        window.onload = () => {
+        // PAGE LOAD INITIALIZATION
+        document.addEventListener("DOMContentLoaded", () => {
             loadChart(marketTvMap["BTCUSDT"]);
             startTimer();
             checkMidnightReset();
             updateUI();
             resetSignalUI();
-        };
+
+            // Start 30-min demo timer check
+            checkDemoTimer();
+            setInterval(checkDemoTimer, 1000);
+        });
     </script>
-</head>
-<body>
-
-    <!-- 30-MINUTE DEMO EXPIRED OVERLAY -->
-    <div id="demoLockOverlay">
-        <div class="lock-card">
-            <h2 style="color: #f85149; margin-bottom: 10px; font-size: 22px;">⚠️ DEMO EXPIRED</h2>
-            <p style="color: #8b949e; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-                Aapka 30-Minute Free Demo Trial khatam ho chuka hai. Full access ke liye Telegram par contact karein.
-            </p>
-            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px;">
-                <span style="font-size: 13px; color: #8b949e;">Official Telegram:</span><br>
-                <span style="font-size: 16px; font-weight: bold; color: #58a6ff;">@ZeroxTHAKUR</span>
-            </div>
-            <a href="https://t.me/ZeroxTHAKUR" target="_blank" class="tg-btn">
-                Contact On Telegram
-            </a>
-        </div>
-    </div>
-
-    <!-- REMAINING DEMO TIME BANNER -->
-    <div id="demoTimerBanner">
-        Demo Left: <span id="demoClock" style="color: #3fb950; font-weight: bold;">30:00</span>
-    </div>
-
-    <div class="container">
-        <div class="card">
-            <h1>QUNTEAM AI</h1>
-            <div class="demo-badge">VIP TERMINAL SECURE</div>
-            
-            <select id="marketSelect" class="select-box" onchange="changeMarket()">
-                <optgroup label="Crypto Pairs">
-                    <option value="BTCUSDT" selected>BTC / USDT</option>
-                    <option value="ETHUSDT">ETH / USDT</option>
-                </optgroup>
-                <optgroup label="Forex Pairs">
-                    <option value="EURUSD">EUR / USD</option>
-                    <option value="GBPUSD">GBP / USD</option>
-                    <option value="USDJPY">USD / JPY</option>
-                    <option value="AUDUSD">AUD / USD</option>
-                    <option value="USDCAD">USD / CAD</option>
-                </optgroup>
-            </select>
-
-            <div id="timer" class="timer-box">Connecting TradingView...</div>
-            <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
-            
-            <!-- SIDE BY SIDE TRADE COUNTER (WIN / LOSS) -->
-            <div class="side-counter-box">
-                <div class="side-counter-item">
-                    <span class="side-counter-title">Trade Wins</span>
-                    <span id="side-win-count" class="side-counter-value" style="color: #3fb950;">0</span>
-                </div>
-                <div class="side-counter-item">
-                    <span class="side-counter-title">Trade Losses</span>
-                    <span id="side-loss-count" class="side-counter-value" style="color: #f85149;">0</span>
-                </div>
-            </div>
-
-            <div class="stat-row">
-                <span class="label">AI Win Rate</span>
-                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">Total Evaluated</span>
-                <span id="total-trades" class="value">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">RSI (14) Filter</span>
-                <span id="rsi" class="value">--</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">MACD Crossover</span>
-                <span id="macd" class="value">--</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">Moving Average</span>
-                <span id="ma" class="value">--</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">System Confidence</span>
-                <span id="confidence" class="value">--</span>
-            </div>
-
-            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (12 AM Reset Active)</div>
-        </div>
-
-        <div class="chart-card">
-            <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
-        </div>
-    </div>
-
 </body>
 </html>
