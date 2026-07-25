@@ -3,308 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - APP DASHBOARD</title>
+    <title>Qunteam AI - VIP Prediction Terminal</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: #0b0e14;
+            color: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
-            margin: 0;
-            padding: 10px;
-            box-sizing: border-box;
+            padding: 20px 15px;
         }
-        .container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+
+        .header-card {
             width: 100%;
-            max-width: 480px;
-        }
-        .card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 15px;
+            max-width: 420px;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            border: 1px solid #00f2fe;
+            border-radius: 15px;
+            padding: 18px;
             text-align: center;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+            margin-bottom: 15px;
         }
-        .chart-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 5px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            height: 380px;
+
+        .header-card h1 {
+            font-size: 20px;
+            color: #00f2fe;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .header-card p {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 5px;
+        }
+
+        /* TRACKER DASHBOARD */
+        .tracker-card {
             width: 100%;
-            box-sizing: border-box;
+            max-width: 420px;
+            background: #111625;
+            border: 1px solid #1e293b;
+            border-radius: 15px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
-        h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; margin-top: 0; font-weight: 800; letter-spacing: 1px; }
-        .demo-badge {
-            background: linear-gradient(45deg, #00ff66, #0088cc);
-            color: #fff;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-        .select-box {
-            background-color: #21262d;
-            color: #c9d1d9;
-            border: 1px solid #30363d;
-            padding: 10px;
-            border-radius: 6px;
-            width: 100%;
-            font-size: 15px;
-            margin-bottom: 12px;
-            outline: none;
-            cursor: pointer;
-        }
-        .signal-box {
-            font-size: 24px;
-            font-weight: bold;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
+
+        .tracker-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 12px;
         }
-        .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; text-shadow: 0 0 10px rgba(63,185,80,0.5); }
-        .PUT { background-color: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; text-shadow: 0 0 10px rgba(248,81,73,0.5); }
-        .NOTRADE { background-color: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #444c56; }
-        .stat-row {
+
+        .stats-grid {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #21262d;
-            font-size: 14px;
+            gap: 8px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #334155;
         }
-        .stat-row:last-child { border-bottom: none; }
-        .label { color: #8b949e; }
-        .value { font-weight: 600; color: #f0f6fc; }
-        .ind-bullish { color: #3fb950; font-weight: bold; }
-        .ind-bearish { color: #f85149; font-weight: bold; }
-        .ind-neutral { color: #8b949e; font-weight: bold; }
-        .timer-box {
-            font-size: 15px;
+
+        .stat-box {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
             font-weight: bold;
-            color: #ffc107;
-            background: rgba(255, 193, 7, 0.1);
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(255, 193, 7, 0.3);
         }
-        .martingale-box {
-            background-color: rgba(88, 166, 255, 0.1);
-            border: 1px solid rgba(88, 166, 255, 0.3);
-            color: #58a6ff;
-            padding: 10px;
-            border-radius: 8px;
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .val-total { color: #f8fafc; }
+        .val-win { color: #22c55e; }
+        .val-loss { color: #ef4444; }
+
+        .accuracy-box {
             margin-top: 12px;
-            font-size: 13px;
+            text-align: center;
+            padding: 8px;
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px dashed #eab308;
+            border-radius: 8px;
+        }
+
+        .accuracy-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #eab308;
+        }
+
+        /* PREDICTION AREA */
+        .prediction-card {
+            width: 100%;
+            max-width: 420px;
+            background: #111625;
+            border: 1px solid #1e293b;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .signal-display {
+            background: #0b0e14;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 25px 15px;
+            margin: 15px 0;
+        }
+
+        .signal-text {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #00f2fe;
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-main:active {
+            transform: scale(0.98);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-win {
+            flex: 1;
+            padding: 12px;
+            background: #22c55e;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-loss {
+            flex: 1;
+            padding: 12px;
+            background: #ef4444;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .footer-note {
+            font-size: 10px;
+            color: #475569;
+            margin-top: 15px;
+            text-align: center;
         }
     </style>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <script>
-        const marketTvMap = {
-            "EURUSD": "FX:EURUSD", "GBPUSD": "FX:GBPUSD", "USDJPY": "FX:USDJPY",
-            "AUDUSD": "FX:AUDUSD", "USDCAD": "FX:USDCAD", "BTCUSDT": "BINANCE:BTCUSDT", "ETHUSDT": "BINANCE:ETHUSDT"
-        };
-
-        let lastCheckedMinute = -1;
-        let totalTrades = 0;
-        let wins = 0;
-        let currentMartingale = 0;
-
-        function startTimer() {
-            setInterval(() => {
-                const now = new Date();
-                const secondsLeft = 60 - now.getSeconds();
-                document.getElementById('timer').innerText = "Next Scan In: " + secondsLeft + "s";
-                
-                if (secondsLeft === 2 && now.getMinutes() !== lastCheckedMinute) {
-                    lastCheckedMinute = now.getMinutes();
-                    generateLiveSignal();
-                }
-            }, 1000);
-        }
-
-        function loadChart(symbol) {
-            new TradingView.widget({
-                "width": "100%", "height": "100%", "symbol": symbol,
-                "interval": "1", "timezone": "Etc/UTC", "theme": "dark",
-                "style": "1", "locale": "en", "enable_publishing": false,
-                "hide_side_toolbar": true, "allow_symbol_change": false,
-                "container_id": "tv-chart-container"
-            });
-        }
-
-        function resetSignalUI() {
-            const signalBox = document.getElementById('signal');
-            signalBox.innerText = "SCANNING MARKET...";
-            signalBox.className = 'signal-box NOTRADE';
-            document.getElementById('rsi').innerText = "--";
-            document.getElementById('macd').innerText = "--";
-            document.getElementById('ma').innerText = "--";
-            document.getElementById('confidence').innerText = "--";
-        }
-
-        function generateLiveSignal() {
-            let rsi = Math.floor(Math.random() * 75) + 15; 
-            let macdStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
-            let maStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
-            
-            if (rsi <= 35) { macdStatus = "BULLISH"; maStatus = "BULLISH"; }
-            if (rsi >= 65) { macdStatus = "BEARISH"; maStatus = "BEARISH"; }
-
-            let signal = "";
-            let classSignal = "";
-            let confidence = "";
-
-            setIndicatorUI('macd', macdStatus);
-            setIndicatorUI('ma', maStatus);
-
-            if (rsi <= 32 && macdStatus === "BULLISH" && maStatus === "BULLISH") {
-                signal = "CALL (VIP SIGNAL)";
-                classSignal = "CALL";
-                confidence = "96%";
-                updateStats(true);
-            } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
-                signal = "PUT (VIP SIGNAL)";
-                classSignal = "PUT";
-                confidence = "96%";
-                updateStats(true);
-            } else {
-                signal = "NO TRADE (WAIT)";
-                classSignal = "NOTRADE";
-                confidence = "10% (RISKY)";
-                if (rsi > 32 && rsi < 45) { setIndicatorUI('macd', 'NEUTRAL'); setIndicatorUI('ma', 'NEUTRAL'); }
-                if (currentMartingale > 0) {
-                    updateStats(false);
-                }
-            }
-
-            const signalBox = document.getElementById('signal');
-            signalBox.innerText = signal;
-            signalBox.className = 'signal-box ' + classSignal;
-            
-            document.getElementById('rsi').innerText = rsi;
-            document.getElementById('confidence').innerText = confidence;
-        }
-
-        function setIndicatorUI(id, status) {
-            const element = document.getElementById(id);
-            element.innerText = status;
-            if (status === "BULLISH") element.className = "value ind-bullish";
-            else if (status === "BEARISH") element.className = "value ind-bearish";
-            else element.className = "value ind-neutral";
-        }
-
-        function updateStats(isRealSignal) {
-            if (!isRealSignal && currentMartingale > 0) {
-                if (Math.random() > 0.22) {
-                    wins++;
-                    currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Martingale Win. Signal Reset.";
-                } else {
-                    currentMartingale++;
-                    if (currentMartingale > 2) currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Martingale Step " + currentMartingale + " (Double Bet)";
-                }
-            } else if (isRealSignal) {
-                totalTrades++;
-                if (Math.random() > 0.12) { 
-                    wins++;
-                    currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Signal Won Successfully.";
-                } else {
-                    currentMartingale = 1;
-                    document.getElementById('mtg-alert').innerText = "Apply Martingale Step 1";
-                }
-            }
-
-            let winRate = totalTrades > 0 ? Math.floor((wins / totalTrades) * 100) : 100;
-            document.getElementById('win-rate').innerText = winRate + "%";
-            document.getElementById('total-trades').innerText = totalTrades;
-        }
-
-        function changeMarket() {
-            const market = document.getElementById('marketSelect').value;
-            loadChart(marketTvMap[market]);
-            resetSignalUI(); 
-        }
-
-        window.onload = () => {
-            loadChart(marketTvMap["BTCUSDT"]);
-            startTimer();
-            resetSignalUI();
-        };
-    </script>
 </head>
 <body>
 
-    <div class="container">
-        <div class="card">
-            <h1>QUNTEAM AI</h1>
-            <div class="demo-badge">VIP TERMINAL SECURE</div>
-            
-            <select id="marketSelect" class="select-box" onchange="changeMarket()">
-                <optgroup label="Crypto Pairs">
-                    <option value="BTCUSDT" selected>BTC / USDT</option>
-                    <option value="ETHUSDT">ETH / USDT</option>
-                </optgroup>
-                <optgroup label="Forex Pairs">
-                    <option value="EURUSD">EUR / USD</option>
-                    <option value="GBPUSD">GBP / USD</option>
-                    <option value="USDJPY">USD / JPY</option>
-                    <option value="AUDUSD">AUD / USD</option>
-                    <option value="USDCAD">USD / CAD</option>
-                </optgroup>
-            </select>
+    <!-- TOP TITLE HEADER -->
+    <div class="header-card">
+        <h1>Qunteam AI VIP Terminal</h1>
+        <p>Live Signal Generator & Auto-Tracker</p>
+    </div>
 
-            <div id="timer" class="timer-box">Connecting TradingView...</div>
-            <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
-            
-            <div class="stat-row">
-                <span class="label">AI Win Rate</span>
-                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
+    <!-- 24H PERFORMANCE TRACKER DASHBOARD -->
+    <div class="tracker-card">
+        <div class="tracker-title">📊 24-Hour Performance Stats</div>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Total</div>
+                <div class="stat-value val-total" id="total-count">0</div>
             </div>
-            <div class="stat-row">
-                <span class="label">Total Evaluated</span>
-                <span id="total-trades" class="value">0</span>
+            <div class="stat-box">
+                <div class="stat-label">Wins</div>
+                <div class="stat-value val-win" id="win-count">0</div>
             </div>
-            <div class="stat-row">
-                <span class="label">RSI (14) Filter</span>
-                <span id="rsi" class="value">--</span>
+            <div class="stat-box">
+                <div class="stat-label">Losses</div>
+                <div class="stat-value val-loss" id="loss-count">0</div>
             </div>
-            <div class="stat-row">
-                <span class="label">MACD Crossover</span>
-                <span id="macd" class="value">--</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">Moving Average</span>
-                <span id="ma" class="value">--</span>
-            </div>
-            <div class="stat-row">
-                <span class="label">System Confidence</span>
-                <span id="confidence" class="value">--</span>
-            </div>
-
-            <div id="mtg-alert" class="martingale-box">AI Core Engine Online</div>
         </div>
-
-        <div class="chart-card">
-            <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
+        <div class="accuracy-box">
+            <span class="accuracy-text">Accuracy: <span id="accuracy-rate">0%</span></span>
         </div>
     </div>
 
+    <!-- PREDICTION & SIGNAL PANEL -->
+    <div class="prediction-card">
+        <button class="btn-main" onclick="getSignal()">GET NEXT SIGNAL</button>
+        
+        <div class="signal-display">
+            <div class="signal-text" id="signal-box">READY</div>
+        </div>
+
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Mark Signal Result:</p>
+        <div class="action-btns">
+            <button class="btn-win" onclick="recordWin()">WIN ✓</button>
+            <button class="btn-loss" onclick="recordLoss()">LOSS ✗</button>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        Stats automatically reset every 24 hours.
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // Load stored data or default to 0
+        let wins = parseInt(localStorage.getItem('qunteam_wins')) || 0;
+        let losses = parseInt(localStorage.getItem('qunteam_losses')) || 0;
+        let lastReset = localStorage.getItem('qunteam_reset_time') || Date.now();
+
+        // 24 Hour Reset Logic Check
+        function check24HourReset() {
+            const now = Date.now();
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            
+            if (now - lastReset >= twentyFourHours) {
+                wins = 0;
+                losses = 0;
+                lastReset = now;
+                localStorage.setItem('qunteam_reset_time', lastReset);
+                saveAndUIUpdate();
+            }
+        }
+
+        // Update Screen UI & Accuracy Calculation
+        function updateUI() {
+            const total = wins + losses;
+            const accuracy = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+
+            document.getElementById('win-count').innerText = wins;
+            document.getElementById('loss-count').innerText = losses;
+            document.getElementById('total-count').innerText = total;
+            document.getElementById('accuracy-rate').innerText = accuracy + '%';
+        }
+
+        function saveAndUIUpdate() {
+            localStorage.setItem('qunteam_wins', wins);
+            localStorage.setItem('qunteam_losses', losses);
+            updateUI();
+        }
+
+        // Record Win
+        function recordWin() {
+            check24HourReset();
+            wins++;
+            saveAndUIUpdate();
+            document.getElementById('signal-box').innerText = "WIN ADDED ✓";
+            document.getElementById('signal-box').style.color = "#22c55e";
+        }
+
+        // Record Loss
+        function recordLoss() {
+            check24HourReset();
+            losses++;
+            saveAndUIUpdate();
+            document.getElementById('signal-box').innerText = "LOSS ADDED ✗";
+            document.getElementById('signal-box').style.color = "#ef4444";
+        }
+
+        // Signal Generator
+        function getSignal() {
+            check24HourReset();
+            const signals = ["CALL / UP ⬆️", "PUT / DOWN ⬇️", "DRAGON 🐉", "TIGER 🐯"];
+            const randomSignal = signals[Math.floor(Math.random() * signals.length)];
+            
+            const signalBox = document.getElementById('signal-box');
+            signalBox.innerText = randomSignal;
+            signalBox.style.color = "#00f2fe";
+        }
+
+        // Run automatically on page load
+        check24HourReset();
+        updateUI();
+    </script>
 </body>
 </html>
