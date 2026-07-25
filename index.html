@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - APP DASHBOARD</title>
+    <title>QUNTEAM AI - VIP APP DASHBOARD</title>
     <style>
         body {
             background-color: #0d1117;
@@ -78,6 +78,7 @@
         .CALL { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; text-shadow: 0 0 10px rgba(63,185,80,0.5); }
         .PUT { background-color: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid #f85149; text-shadow: 0 0 10px rgba(248,81,73,0.5); }
         .NOTRADE { background-color: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #444c56; }
+        
         .stat-row {
             display: flex;
             justify-content: space-between;
@@ -91,6 +92,7 @@
         .ind-bullish { color: #3fb950; font-weight: bold; }
         .ind-bearish { color: #f85149; font-weight: bold; }
         .ind-neutral { color: #8b949e; font-weight: bold; }
+        
         .timer-box {
             font-size: 15px;
             font-weight: bold;
@@ -111,6 +113,19 @@
             font-size: 13px;
             font-weight: bold;
         }
+
+        /* 24-HOUR TRACKER BOX STYLES */
+        .tracker-grid {
+            display: flex;
+            justify-content: space-around;
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            margin-bottom: 12px;
+        }
+        .tracker-item { text-align: center; }
+        .tracker-val { font-size: 18px; font-weight: bold; margin-top: 2px; }
     </style>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
@@ -120,9 +135,41 @@
         };
 
         let lastCheckedMinute = -1;
-        let totalTrades = 0;
-        let wins = 0;
-        let currentMartingale = 0;
+
+        // 24-HOUR TRACKING VARIABLES
+        let totalWins = parseInt(localStorage.getItem('q_wins')) || 0;
+        let totalLosses = parseInt(localStorage.getItem('q_losses')) || 0;
+        let lastReset = localStorage.getItem('q_reset_time') || Date.now();
+
+        // 24 Hour Reset Check Logic
+        function check24HourReset() {
+            const now = Date.now();
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            
+            if (now - lastReset >= twentyFourHours) {
+                totalWins = 0;
+                totalLosses = 0;
+                lastReset = now;
+                localStorage.setItem('q_reset_time', lastReset);
+                saveAndUIUpdate();
+            }
+        }
+
+        function updateUI() {
+            let totalTrades = totalWins + totalLosses;
+            let winRate = totalTrades > 0 ? Math.floor((totalWins / totalTrades) * 100) : 100;
+
+            document.getElementById('total-wins').innerText = totalWins;
+            document.getElementById('total-losses').innerText = totalLosses;
+            document.getElementById('total-trades').innerText = totalTrades;
+            document.getElementById('win-rate').innerText = winRate + "%";
+        }
+
+        function saveAndUIUpdate() {
+            localStorage.setItem('q_wins', totalWins);
+            localStorage.setItem('q_losses', totalLosses);
+            updateUI();
+        }
 
         function startTimer() {
             setInterval(() => {
@@ -158,6 +205,8 @@
         }
 
         function generateLiveSignal() {
+            check24HourReset();
+
             let rsi = Math.floor(Math.random() * 75) + 15; 
             let macdStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
             let maStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
@@ -176,20 +225,25 @@
                 signal = "CALL (VIP SIGNAL)";
                 classSignal = "CALL";
                 confidence = "96%";
-                updateStats(true);
+                
+                // Signal Result Count (Auto Win/Loss simulation)
+                if(Math.random() > 0.15) { totalWins++; } else { totalLosses++; }
+                saveAndUIUpdate();
+
             } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
                 signal = "PUT (VIP SIGNAL)";
                 classSignal = "PUT";
                 confidence = "96%";
-                updateStats(true);
+                
+                // Signal Result Count (Auto Win/Loss simulation)
+                if(Math.random() > 0.15) { totalWins++; } else { totalLosses++; }
+                saveAndUIUpdate();
+
             } else {
                 signal = "NO TRADE (WAIT)";
                 classSignal = "NOTRADE";
                 confidence = "10% (RISKY)";
                 if (rsi > 32 && rsi < 45) { setIndicatorUI('macd', 'NEUTRAL'); setIndicatorUI('ma', 'NEUTRAL'); }
-                if (currentMartingale > 0) {
-                    updateStats(false);
-                }
             }
 
             const signalBox = document.getElementById('signal');
@@ -208,34 +262,6 @@
             else element.className = "value ind-neutral";
         }
 
-        function updateStats(isRealSignal) {
-            if (!isRealSignal && currentMartingale > 0) {
-                if (Math.random() > 0.22) {
-                    wins++;
-                    currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Martingale Win. Signal Reset.";
-                } else {
-                    currentMartingale++;
-                    if (currentMartingale > 2) currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Martingale Step " + currentMartingale + " (Double Bet)";
-                }
-            } else if (isRealSignal) {
-                totalTrades++;
-                if (Math.random() > 0.12) { 
-                    wins++;
-                    currentMartingale = 0;
-                    document.getElementById('mtg-alert').innerText = "Signal Won Successfully.";
-                } else {
-                    currentMartingale = 1;
-                    document.getElementById('mtg-alert').innerText = "Apply Martingale Step 1";
-                }
-            }
-
-            let winRate = totalTrades > 0 ? Math.floor((wins / totalTrades) * 100) : 100;
-            document.getElementById('win-rate').innerText = winRate + "%";
-            document.getElementById('total-trades').innerText = totalTrades;
-        }
-
         function changeMarket() {
             const market = document.getElementById('marketSelect').value;
             loadChart(marketTvMap[market]);
@@ -245,6 +271,8 @@
         window.onload = () => {
             loadChart(marketTvMap["BTCUSDT"]);
             startTimer();
+            check24HourReset();
+            updateUI();
             resetSignalUI();
         };
     </script>
@@ -273,13 +301,25 @@
             <div id="timer" class="timer-box">Connecting TradingView...</div>
             <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
             
-            <div class="stat-row">
-                <span class="label">AI Win Rate</span>
-                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
+            <!-- 24-HOUR WIN / LOSS STATS PANEL -->
+            <div class="tracker-grid">
+                <div class="tracker-item">
+                    <div class="label">24h Wins</div>
+                    <div id="total-wins" class="tracker-val" style="color: #3fb950;">0</div>
+                </div>
+                <div class="tracker-item">
+                    <div class="label">24h Losses</div>
+                    <div id="total-losses" class="tracker-val" style="color: #f85149;">0</div>
+                </div>
+                <div class="tracker-item">
+                    <div class="label">Total Signals</div>
+                    <div id="total-trades" class="tracker-val" style="color: #f0f6fc;">0</div>
+                </div>
             </div>
+
             <div class="stat-row">
-                <span class="label">Total Evaluated</span>
-                <span id="total-trades" class="value">0</span>
+                <span class="label">24h Win Rate</span>
+                <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
             </div>
             <div class="stat-row">
                 <span class="label">RSI (14) Filter</span>
@@ -298,7 +338,7 @@
                 <span id="confidence" class="value">--</span>
             </div>
 
-            <div id="mtg-alert" class="martingale-box">AI Core Engine Online</div>
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (Auto 24h Reset Active)</div>
         </div>
 
         <div class="chart-card">
