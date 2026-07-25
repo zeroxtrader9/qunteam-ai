@@ -114,7 +114,7 @@
             font-weight: bold;
         }
 
-        /* 24-HOUR TRACKER BOX STYLES */
+        /* 12 AM DAILY STATS PANEL */
         .tracker-grid {
             display: flex;
             justify-content: space-around;
@@ -136,23 +136,37 @@
 
         let lastCheckedMinute = -1;
 
-        // 24-HOUR TRACKING VARIABLES
-        let totalWins = parseInt(localStorage.getItem('q_wins')) || 0;
-        let totalLosses = parseInt(localStorage.getItem('q_losses')) || 0;
-        let lastReset = localStorage.getItem('q_reset_time') || Date.now();
+        // --- 12 AM DATA TRACKING SYSTEM ---
+        let totalWins = 0;
+        let totalLosses = 0;
 
-        // 24 Hour Reset Check Logic
-        function check24HourReset() {
-            const now = Date.now();
-            const twentyFourHours = 24 * 60 * 60 * 1000;
-            
-            if (now - lastReset >= twentyFourHours) {
+        function getTodayMidnightTimestamp() {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0); // Raat ke 12:00 AM ka time
+            return now.getTime();
+        }
+
+        function loadStoredData() {
+            const storedDate = localStorage.getItem('q_data_date') || 0;
+            const currentMidnight = getTodayMidnightTimestamp();
+
+            // Agar 12:00 AM guzar chuka hai naya din shuru hua h, toh reset kar do
+            if (parseInt(storedDate) < currentMidnight) {
                 totalWins = 0;
                 totalLosses = 0;
-                lastReset = now;
-                localStorage.setItem('q_reset_time', lastReset);
+                localStorage.setItem('q_data_date', currentMidnight);
                 saveAndUIUpdate();
+            } else {
+                totalWins = parseInt(localStorage.getItem('q_today_wins')) || 0;
+                totalLosses = parseInt(localStorage.getItem('q_today_losses')) || 0;
             }
+        }
+
+        function saveAndUIUpdate() {
+            localStorage.setItem('q_data_date', getTodayMidnightTimestamp());
+            localStorage.setItem('q_today_wins', totalWins);
+            localStorage.setItem('q_today_losses', totalLosses);
+            updateUI();
         }
 
         function updateUI() {
@@ -163,12 +177,6 @@
             document.getElementById('total-losses').innerText = totalLosses;
             document.getElementById('total-trades').innerText = totalTrades;
             document.getElementById('win-rate').innerText = winRate + "%";
-        }
-
-        function saveAndUIUpdate() {
-            localStorage.setItem('q_wins', totalWins);
-            localStorage.setItem('q_losses', totalLosses);
-            updateUI();
         }
 
         function startTimer() {
@@ -204,8 +212,9 @@
             document.getElementById('confidence').innerText = "--";
         }
 
+        // --- SIGNAL GENERATION & CANDLE LOGIC ---
         function generateLiveSignal() {
-            check24HourReset();
+            loadStoredData(); // Check agar 12 AM ho gaye ho
 
             let rsi = Math.floor(Math.random() * 75) + 15; 
             let macdStatus = Math.random() > 0.5 ? "BULLISH" : "BEARISH";
@@ -221,22 +230,33 @@
             setIndicatorUI('macd', macdStatus);
             setIndicatorUI('ma', maStatus);
 
+            // Candle Color Simulation (GREEN ya RED)
+            let candleColor = Math.random() > 0.25 ? "GREEN" : "RED"; 
+
             if (rsi <= 32 && macdStatus === "BULLISH" && maStatus === "BULLISH") {
                 signal = "CALL (VIP SIGNAL)";
                 classSignal = "CALL";
                 confidence = "96%";
-                
-                // Signal Result Count (Auto Win/Loss simulation)
-                if(Math.random() > 0.15) { totalWins++; } else { totalLosses++; }
+
+                // LOGIC: CALL Signal (Green)
+                if (candleColor === "GREEN") {
+                    totalWins++; // Signal Green + Candle Green = WIN
+                } else {
+                    totalLosses++; // Signal Green + Candle Red = LOSS
+                }
                 saveAndUIUpdate();
 
             } else if (rsi >= 68 && macdStatus === "BEARISH" && maStatus === "BEARISH") {
                 signal = "PUT (VIP SIGNAL)";
                 classSignal = "PUT";
                 confidence = "96%";
-                
-                // Signal Result Count (Auto Win/Loss simulation)
-                if(Math.random() > 0.15) { totalWins++; } else { totalLosses++; }
+
+                // LOGIC: PUT Signal (Red)
+                if (candleColor === "RED") {
+                    totalWins++; // Signal Red + Candle Red = WIN
+                } else {
+                    totalLosses++; // Signal Red + Candle Green = LOSS
+                }
                 saveAndUIUpdate();
 
             } else {
@@ -271,7 +291,7 @@
         window.onload = () => {
             loadChart(marketTvMap["BTCUSDT"]);
             startTimer();
-            check24HourReset();
+            loadStoredData();
             updateUI();
             resetSignalUI();
         };
@@ -301,24 +321,24 @@
             <div id="timer" class="timer-box">Connecting TradingView...</div>
             <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
             
-            <!-- 24-HOUR WIN / LOSS STATS PANEL -->
+            <!-- TODAY (12 AM ONWARDS) STATS PANEL -->
             <div class="tracker-grid">
                 <div class="tracker-item">
-                    <div class="label">24h Wins</div>
+                    <div class="label">Today Wins</div>
                     <div id="total-wins" class="tracker-val" style="color: #3fb950;">0</div>
                 </div>
                 <div class="tracker-item">
-                    <div class="label">24h Losses</div>
+                    <div class="label">Today Losses</div>
                     <div id="total-losses" class="tracker-val" style="color: #f85149;">0</div>
                 </div>
                 <div class="tracker-item">
-                    <div class="label">Total Signals</div>
+                    <div class="label">Today Signals</div>
                     <div id="total-trades" class="tracker-val" style="color: #f0f6fc;">0</div>
                 </div>
             </div>
 
             <div class="stat-row">
-                <span class="label">24h Win Rate</span>
+                <span class="label">Today Win Rate</span>
                 <span id="win-rate" class="value" style="color: #3fb950;">100%</span>
             </div>
             <div class="stat-row">
@@ -338,7 +358,7 @@
                 <span id="confidence" class="value">--</span>
             </div>
 
-            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (Auto 24h Reset Active)</div>
+            <div id="mtg-alert" class="martingale-box">Daily Auto-Reset Active (12:00 AM)</div>
         </div>
 
         <div class="chart-card">
