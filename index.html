@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - VIP ACCESS TERMINAL</title>
+    <title>QUNTEAM AI - VIP APP DASHBOARD</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -16,6 +16,7 @@
             justify-content: flex-start;
             min-height: 100vh;
             padding: 10px;
+            position: relative;
         }
         .container {
             display: flex;
@@ -23,6 +24,7 @@
             gap: 12px;
             width: 100%;
             max-width: 480px;
+            margin-bottom: 60px; /* Floating banner space */
         }
         .card {
             background-color: #161b22;
@@ -42,8 +44,8 @@
             width: 100%;
         }
         h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; font-weight: 800; letter-spacing: 1px; }
-        .vip-badge {
-            background: linear-gradient(45deg, #00ff66, #0088cc);
+        .demo-badge {
+            background: linear-gradient(45deg, #ff9900, #ff0055);
             color: #fff;
             font-size: 11px;
             font-weight: bold;
@@ -137,15 +139,91 @@
             font-weight: 800;
             margin-top: 2px;
         }
+
+        /* FIXED VISIBLE TIMER FLOATING BADGE */
+        #floatingTimerBadge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #161b22;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            z-index: 9999;
+            display: block;
+        }
+
+        /* LOCK OVERLAY */
+        #demoLockOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(13, 17, 23, 0.98);
+            color: #fff;
+            z-index: 9999999;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .lock-card {
+            background: #161b22;
+            padding: 30px 20px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .tg-btn {
+            display: inline-block;
+            background: #0088cc;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
+        }
     </style>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
+    <!-- FLOATING DEMO TIMER -->
+    <div id="floatingTimerBadge">
+        Demo Left: <span id="timerClock" style="color: #00ff88;">30:00</span>
+    </div>
+
+    <!-- LOCK SCREEN OVERLAY -->
+    <div id="demoLockOverlay">
+        <div class="lock-card">
+            <h2 style="color: #f85149; margin-bottom: 10px; font-size: 22px;">⚠️ DEMO EXPIRED</h2>
+            <p style="color: #8b949e; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+                Aapka 30-Minute Free Demo Trial khatam ho gaya hai. Full access ke liye Telegram par Contact karein.
+            </p>
+            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px;">
+                <span style="font-size: 13px; color: #8b949e;">Official Telegram:</span><br>
+                <span style="font-size: 16px; font-weight: bold; color: #58a6ff;">@ZeroxTHAKUR</span>
+            </div>
+            <a href="https://t.me/ZeroxTHAKUR?text=Hi,%20Mera%2030%20Min%20Demo%20Expire%20Ho%20Gaya%20Hai.%20Mujhe%20Subscription%20Chahiye." target="_blank" class="tg-btn">
+                Contact On Telegram
+            </a>
+        </div>
+    </div>
+
     <div class="container">
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <div class="vip-badge">VIP FULL UNLOCKED</div>
+            <div class="demo-badge">30-MIN FREE DEMO</div>
             
             <select id="marketSelect" class="select-box" onchange="changeMarket()">
                 <optgroup label="Crypto Pairs">
@@ -200,7 +278,7 @@
                 <span id="confidence" class="value">--</span>
             </div>
 
-            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (VIP License Active)</div>
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (12 AM Reset Active)</div>
         </div>
 
         <div class="chart-card">
@@ -217,6 +295,36 @@
         let lastCheckedMinute = -1;
         let wins = 0;
         let losses = 0;
+
+        // --- 30-MINUTE TIMER DIRECT RUN ---
+        function updateDemoTimer() {
+            const THIRTY_MINS = 30 * 60 * 1000;
+            let demoStart = localStorage.getItem('q_app_start_time');
+
+            if (!demoStart) {
+                demoStart = Date.now();
+                localStorage.setItem('q_app_start_time', demoStart);
+            }
+
+            const elapsed = Date.now() - parseInt(demoStart, 10);
+            const remaining = THIRTY_MINS - elapsed;
+
+            const overlay = document.getElementById('demoLockOverlay');
+            const floatingBadge = document.getElementById('floatingTimerBadge');
+            const clockText = document.getElementById('timerClock');
+
+            if (remaining <= 0) {
+                if (overlay) overlay.style.display = 'flex';
+                if (floatingBadge) floatingBadge.style.display = 'none';
+                document.body.style.overflow = 'hidden';
+            } else {
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                if (clockText) {
+                    clockText.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                }
+            }
+        }
 
         function checkMidnightReset() {
             const now = new Date();
@@ -363,13 +471,18 @@
             resetSignalUI(); 
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        // IMMEDIATE INITIALIZATION
+        window.onload = () => {
             loadChart(marketTvMap["BTCUSDT"]);
             startTimer();
             checkMidnightReset();
             updateUI();
             resetSignalUI();
-        });
+
+            // Run Demo Clock
+            updateDemoTimer();
+            setInterval(updateDemoTimer, 1000);
+        };
     </script>
 </body>
 </html>
