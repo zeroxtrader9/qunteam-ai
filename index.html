@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUNTEAM AI - VIP APP DASHBOARD</title>
+    <title>QUNTEAM AI - VIP ACCESS TERMINAL</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -42,7 +42,7 @@
             width: 100%;
         }
         h1 { font-size: 22px; margin-bottom: 5px; color: #58a6ff; font-weight: 800; letter-spacing: 1px; }
-        .demo-badge {
+        .vip-badge {
             background: linear-gradient(45deg, #00ff66, #0088cc);
             color: #fff;
             font-size: 11px;
@@ -137,87 +137,15 @@
             font-weight: 800;
             margin-top: 2px;
         }
-
-        /* 30-MINUTE LOCK SCREEN OVERLAY */
-        #demoLockOverlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(13, 17, 23, 0.98);
-            color: #fff;
-            z-index: 999999;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            flex-direction: column;
-            padding: 20px;
-        }
-        .lock-card {
-            background: #161b22;
-            padding: 30px 20px;
-            border-radius: 12px;
-            border: 1px solid #30363d;
-            max-width: 380px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .tg-btn {
-            display: inline-block;
-            background: #0088cc;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 15px;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
-        }
-        #demoTimerBanner {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: #161b22;
-            color: #c9d1d9;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: 1px solid #30363d;
-            z-index: 99999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
     </style>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
-    <!-- 30-MINUTE DEMO EXPIRED OVERLAY -->
-    <div id="demoLockOverlay">
-        <div class="lock-card">
-            <h2 style="color: #f85149; margin-bottom: 10px; font-size: 22px;">⚠️ DEMO EXPIRED</h2>
-            <p style="color: #8b949e; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-                Aapka 30-Minute Free Demo Trial khatam ho chuka hai. Full access ke liye Telegram par contact karein.
-            </p>
-            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px;">
-                <span style="font-size: 13px; color: #8b949e;">Official Telegram:</span><br>
-                <span style="font-size: 16px; font-weight: bold; color: #58a6ff;">@ZeroxTHAKUR</span>
-            </div>
-            <a href="https://t.me/ZeroxTHAKUR" target="_blank" class="tg-btn">
-                Contact On Telegram
-            </a>
-        </div>
-    </div>
-
-    <!-- REMAINING DEMO TIME BANNER -->
-    <div id="demoTimerBanner">
-        Demo Left: <span id="demoClock" style="color: #3fb950; font-weight: bold;">30:00</span>
-    </div>
-
     <div class="container">
         <div class="card">
             <h1>QUNTEAM AI</h1>
-            <div class="demo-badge">VIP TERMINAL SECURE</div>
+            <div class="vip-badge">VIP FULL UNLOCKED</div>
             
             <select id="marketSelect" class="select-box" onchange="changeMarket()">
                 <optgroup label="Crypto Pairs">
@@ -236,7 +164,6 @@
             <div id="timer" class="timer-box">Connecting TradingView...</div>
             <div id="signal" class="signal-box NOTRADE">ANALYZING...</div>
             
-            <!-- SIDE BY SIDE TRADE COUNTER (WIN / LOSS) -->
             <div class="side-counter-box">
                 <div class="side-counter-item">
                     <span class="side-counter-title">Trade Wins</span>
@@ -273,7 +200,7 @@
                 <span id="confidence" class="value">--</span>
             </div>
 
-            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (12 AM Reset Active)</div>
+            <div id="mtg-alert" class="martingale-box">AI Core Engine Online (VIP License Active)</div>
         </div>
 
         <div class="chart-card">
@@ -281,7 +208,6 @@
         </div>
     </div>
 
-    <!-- MAIN JAVASCRIPT LOGIC -->
     <script>
         const marketTvMap = {
             "EURUSD": "FX:EURUSD", "GBPUSD": "FX:GBPUSD", "USDJPY": "FX:USDJPY",
@@ -292,35 +218,6 @@
         let wins = 0;
         let losses = 0;
 
-        // --- 30-MINUTE DEMO TIMER SYSTEM ---
-        function checkDemoTimer() {
-            const THIRTY_MIN_MS = 30 * 60 * 1000; // 30 Minutes
-            let demoStart = localStorage.getItem('q_demo_start');
-
-            if (!demoStart) {
-                demoStart = Date.now();
-                localStorage.setItem('q_demo_start', demoStart);
-            }
-
-            const elapsed = Date.now() - parseInt(demoStart, 10);
-            const remaining = THIRTY_MIN_MS - elapsed;
-
-            const overlay = document.getElementById('demoLockOverlay');
-            const banner = document.getElementById('demoTimerBanner');
-            const clock = document.getElementById('demoClock');
-
-            if (remaining <= 0) {
-                if (overlay) overlay.style.display = 'flex';
-                if (banner) banner.style.display = 'none';
-                document.body.style.overflow = 'hidden';
-            } else {
-                const mins = Math.floor(remaining / 60000);
-                const secs = Math.floor((remaining % 60000) / 1000);
-                if (clock) clock.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            }
-        }
-
-        // --- 12:00 AM DAILY RESET SYSTEM ---
         function checkMidnightReset() {
             const now = new Date();
             now.setHours(0, 0, 0, 0);
@@ -466,17 +363,12 @@
             resetSignalUI(); 
         }
 
-        // PAGE LOAD INITIALIZATION
         document.addEventListener("DOMContentLoaded", () => {
             loadChart(marketTvMap["BTCUSDT"]);
             startTimer();
             checkMidnightReset();
             updateUI();
             resetSignalUI();
-
-            // Start 30-min demo timer check
-            checkDemoTimer();
-            setInterval(checkDemoTimer, 1000);
         });
     </script>
 </body>
